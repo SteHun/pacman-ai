@@ -1,0 +1,1 @@
+game.maze: will contain a matrix that will indicate which tiles are solid. 
