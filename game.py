@@ -1,9 +1,9 @@
 class directions:
-    up = 0
-    down = 1
-    left = 2
-    right = 3
-    no = 4
+    up = 1
+    down = 2
+    left = 3
+    right = 4
+    no = 0
 
 
 class game:
