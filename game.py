@@ -8,18 +8,28 @@ class directions:
 
 class game:
     def __init__(self):
+        self.fps = 60
+        self.maze_width_in_tiles = 28
+        self.maze_height_in_tiles = 36
+        self.tile_width_height = 8
+        self.clock = 0
         self.maze = None #add later
+        self.eaten_dots = [[False]*self.maze_width_in_tiles for _ in range(self.maze_height_in_tiles)]
         self.input = directions.no
         self.player = player()
         self.enemies = (blinky(), pinky(), inky(), clyde())
+        self.tile_to_remove = 1 #debug: remove later
     def set_input(self, key):
-        if key > 4:
-            raise RuntimeError("input numbers must be between 1 and 4")
+        assert key <= 4, f"input number should be between 1 and 4, not {key}"
         self.input = key
     def advance(self):
+        self.clock += 1
         self.player.advance()
         for enemy in self.enemies:
             enemy.advance()
+        if self.clock % self.fps == 0:
+            self.eaten_dots[4][self.tile_to_remove] = True
+            if self.tile_to_remove < 26: self.tile_to_remove += 1
 
 class player:
     def __init__(self):

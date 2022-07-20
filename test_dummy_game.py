@@ -83,3 +83,4 @@ class GameTests(unittest.TestCase):
                 self.assertLessEqual(enemy.y_pos, enemy.max_y_pos)
                 self.assertGreaterEqual(enemy.x_pos, enemy.min_x_pos)
                 self.assertGreaterEqual(enemy.y_pos, enemy.min_y_pos)
+    
