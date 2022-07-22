@@ -7,7 +7,7 @@ class GameTests(unittest.TestCase):
         self.assertTrue(True)
     
     def test_set_input(self):
-        game_instance = game.game()
+        game_instance = game.Game()
         self.assertEqual(game_instance.input, game.directions.no)
         for direction in (game.directions.up, game.directions.down, 
         game.directions.left, game.directions.right):
@@ -15,14 +15,14 @@ class GameTests(unittest.TestCase):
             self.assertEqual(game_instance.input, direction)
 
     def test_player_set_direction(self):
-        game_instance = game.game()
+        game_instance = game.Game()
         for direction in (game.directions.up, game.directions.down, 
         game.directions.left, game.directions.right):
             game_instance.player.set_direction(direction)
             self.assertEqual(game_instance.player.direction, direction)
         
     def test_player_set_position(self):
-        game_instance = game.game()
+        game_instance = game.Game()
         new_x_pos = randint(0,100)
         new_y_pos = randint(0,100)
         game_instance.player.set_position(new_x_pos, new_y_pos)
@@ -30,7 +30,7 @@ class GameTests(unittest.TestCase):
         self.assertEqual(game_instance.player.y_pos, new_y_pos)
     
     def test_enemies_set_direction(self):
-        game_instance = game.game()
+        game_instance = game.Game()
         for enemy in game_instance.enemies:
             for direction in (game.directions.up, game.directions.down, 
             game.directions.left, game.directions.right):
@@ -38,7 +38,7 @@ class GameTests(unittest.TestCase):
                 self.assertEqual(enemy.direction, direction)
 
     def test_enemies_set_position(self):
-        game_instance = game.game()
+        game_instance = game.Game()
         for enemy in game_instance.enemies:
             new_x_pos = randint(0,100)
             new_y_pos = randint(0,100)
@@ -47,7 +47,7 @@ class GameTests(unittest.TestCase):
             self.assertEqual(enemy.y_pos, new_y_pos)
     
     def test_player_is_moving(self):
-        game_instance = game.game()
+        game_instance = game.Game()
         for _ in range(300):
             old_x_pos, old_y_pos = game_instance.player.x_pos, game_instance.player.y_pos
             game_instance.advance()
@@ -55,7 +55,7 @@ class GameTests(unittest.TestCase):
             self.assertNotEqual(old_y_pos, game_instance.player.y_pos)
 
     def test_player_stays_in_bounds(self):
-        game_instance = game.game()
+        game_instance = game.Game()
         for _ in range(300):
             game_instance.advance()
             self.assertLessEqual(game_instance.player.x_pos, game_instance.player.max_x_pos)
@@ -64,7 +64,7 @@ class GameTests(unittest.TestCase):
             self.assertGreaterEqual(game_instance.player.y_pos, game_instance.player.min_y_pos)
     
     def test_enemies_are_moving(self):
-        game_instance = game.game()
+        game_instance = game.Game()
         old_positions = [None for _ in range(4)]
         for _ in range(300):
             for i, enemy in enumerate(game_instance.enemies):
@@ -75,7 +75,7 @@ class GameTests(unittest.TestCase):
                 self.assertNotEqual(old_positions[i][1], game_instance.enemies[i].y_pos)
     
     def test_enemies_stay_in_bounds(self):
-        game_instance = game.game()
+        game_instance = game.Game()
         for _ in range(300):
             game_instance.advance()
             for enemy in game_instance.enemies:

@@ -6,7 +6,7 @@ class directions:
     no = 0
 
 
-class game:
+class Game:
     def __init__(self):
         self.fps = 60
         self.maze_width_in_tiles = 28
@@ -16,8 +16,8 @@ class game:
         self.maze = None #add later
         self.eaten_dots = [[False]*self.maze_width_in_tiles for _ in range(self.maze_height_in_tiles)]
         self.input = directions.no
-        self.player = player()
-        self.enemies = (blinky(), pinky(), inky(), clyde())
+        self.player = Player()
+        self.enemies = (Blinky(), Pinky(), Inky(), Clyde())
         self.tile_to_remove = 1 #debug: remove later
     def set_input(self, key):
         assert key <= 4, f"input number should be between 1 and 4, not {key}"
@@ -30,8 +30,10 @@ class game:
         if self.clock % self.fps == 0:
             self.eaten_dots[4][self.tile_to_remove] = True
             if self.tile_to_remove < 26: self.tile_to_remove += 1
+            for entity in (self.player,) + self.enemies:
+                entity.set_direction((self.clock // self.fps % 4) + 1)
 
-class player:
+class Player:
     def __init__(self):
         self.x_pos = 24
         self.y_pos = 24
@@ -68,7 +70,7 @@ class player:
             self.x_pos -= self.x_movement
             self.y_pos -= self.y_movement
 
-class enemy:
+class Enemy:
     def __init__(self):
         self.initialize()
 
@@ -103,25 +105,25 @@ class enemy:
             self.x_pos -= self.x_movement
             self.y_pos -= self.y_movement
 
-class blinky(enemy):
+class Blinky(Enemy):
     def __init__(self):
         self.x_pos = 40
         self.y_pos = 24
         self.initialize()
 
-class pinky(enemy):
+class Pinky(Enemy):
     def __init__(self):
         self.x_pos = 56
         self.y_pos = 24
         self.initialize()
 
-class inky(enemy):
+class Inky(Enemy):
     def __init__(self):
         self.x_pos = 72
         self.y_pos = 24
         self.initialize()
 
-class clyde(enemy):
+class Clyde(Enemy):
     def __init__(self):
         self.x_pos = 88
         self.y_pos = 24
