@@ -11,13 +11,16 @@ class Window:
         self.game_object = game_object
         self.size_multiplier = size_multiplier
 
-        self.sprite_width_length = 16
+        self.tile_width_height = 8 * self.size_multiplier
+        self.sprite_width_height = 16 * self.size_multiplier
         self.width = 224
         self.height = 288
+        self.fill_color = (0, 0, 0)
         number_of_sprites_per_enemy_type = 4
         scared_blue_enemy_sprite_position = (0, 4)
         scared_white_enemy_sprite_position = (1, 4)
 
+        self.dot_map = [[item == game.maze.dot for item in row] for row in self.game_object.maze]
 
         self.size = self.width, self.height = self.width*self.size_multiplier, self.height*self.size_multiplier
 
@@ -25,7 +28,7 @@ class Window:
 
         #lambdas
         enlarge_image = lambda image, factor : pygame.transform.scale(image, (image.get_width()*factor, image.get_height()*factor))
-        get_rect = lambda x_cord, y_cord : (self.sprite_width_length*x_cord*self.size_multiplier, self.sprite_width_length*y_cord*self.size_multiplier, self.sprite_width_length*self.size_multiplier, self.sprite_width_length*self.size_multiplier)
+        get_rect = lambda x_cord, y_cord : (self.sprite_width_height*x_cord, self.sprite_width_height*y_cord, self.sprite_width_height, self.sprite_width_height)
         self.scale_position = lambda x_pos, y_pos : tuple([i * self.size_multiplier for i in (x_pos, y_pos)])
 
         #load background
@@ -55,6 +58,12 @@ class Window:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
+        
+        for row_index, row in enumerate(self.game_object.maze):
+            for item_index, item in enumerate(row):
+                if item != game.maze.empty or self.dot_map[row_index][item_index] == False: continue
+                self.dot_map[row_index][item_index] = False
+                pygame.draw.rect(self.bg, self.fill_color, (self.tile_width_height * item_index, self.tile_width_height * row_index, self.tile_width_height, self.tile_width_height))
 
         self.screen.blit(self.bg, (0, 0))
 

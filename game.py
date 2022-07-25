@@ -32,7 +32,7 @@ class Game:
         for enemy in self.enemies:
             enemy.advance()
         if self.clock % self.fps == 0:
-            self.maze[4][self.tile_to_remove] = maze.empty
+            self.maze[3][self.tile_to_remove] = maze.empty
             if self.tile_to_remove < 26: self.tile_to_remove += 1
 
             for entity in (self.player,) + self.enemies:
