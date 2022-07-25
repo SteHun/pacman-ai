@@ -4,6 +4,11 @@ class directions:
     left = 3
     right = 4
     no = 0
+class maze:
+    wall = 0
+    empty = 1
+    dot = 2
+    power = 3
 
 
 class Game:
@@ -13,8 +18,7 @@ class Game:
         self.maze_height_in_tiles = 36
         self.tile_width_height = 8
         self.clock = 0
-        self.maze = None #add later
-        self.eaten_dots = [[False]*self.maze_width_in_tiles for _ in range(self.maze_height_in_tiles)]
+        self.maze = [[maze.dot]*self.maze_width_in_tiles for _ in range(self.maze_height_in_tiles)] #create maze structure later
         self.input = directions.no
         self.player = Player()
         self.enemies = (Blinky(), Pinky(), Inky(), Clyde())
@@ -28,8 +32,9 @@ class Game:
         for enemy in self.enemies:
             enemy.advance()
         if self.clock % self.fps == 0:
-            self.eaten_dots[4][self.tile_to_remove] = True
+            self.maze[4][self.tile_to_remove] = maze.empty
             if self.tile_to_remove < 26: self.tile_to_remove += 1
+
             for entity in (self.player,) + self.enemies:
                 entity.set_direction((self.clock // self.fps % 4) + 1)
 
