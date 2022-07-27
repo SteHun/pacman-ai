@@ -9,6 +9,17 @@ class maze:
     empty = 1
     dot = 2
     power = 3
+class fruits:
+    none = 0
+    cherry = 1
+    berry = 2
+    peach = 3
+    apple = 4
+    grape = 5
+    galaxian = 6
+    bell = 7
+    key = 8
+
 
 
 class Game:
@@ -17,11 +28,14 @@ class Game:
         self.maze_width_in_tiles = 28
         self.maze_height_in_tiles = 36
         self.tile_width_height = 8
+        self.tile_to_left_of_fruit = (13,19)
+        self.tile_to_right_of_fruit = (self.tile_to_left_of_fruit[0] + 1, self.tile_to_left_of_fruit[1])
         self.clock = 0
         self.maze = [[maze.dot]*self.maze_width_in_tiles for _ in range(self.maze_height_in_tiles)] #create maze structure later
         self.input = directions.no
         self.player = Player()
         self.enemies = (Blinky(), Pinky(), Inky(), Clyde())
+        self.active_fruit = fruits.none
         self.tile_to_remove = 1 #debug: remove later
     def set_input(self, key):
         assert key <= 4, f"input number should be between 1 and 4, not {key}"
@@ -37,6 +51,7 @@ class Game:
 
             for entity in (self.player,) + self.enemies:
                 entity.set_direction((self.clock // self.fps % 4) + 1)
+            self.active_fruit = self.active_fruit + 1 if self.active_fruit < fruits.key else fruits.none
 
 class Player:
     def __init__(self):
