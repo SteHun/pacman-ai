@@ -31,12 +31,29 @@ class Game:
         self.tile_to_left_of_fruit = (13,19)
         self.tile_to_right_of_fruit = (self.tile_to_left_of_fruit[0] + 1, self.tile_to_left_of_fruit[1])
         self.clock = 0
-        self.maze = [[maze.dot]*self.maze_width_in_tiles for _ in range(self.maze_height_in_tiles)] #create maze structure later
+        #self.maze = [[maze.dot]*self.maze_width_in_tiles for _ in range(self.maze_height_in_tiles)] #create maze structure later
         self.input = directions.no
         self.player = Player()
         self.enemies = (Blinky(), Pinky(), Inky(), Clyde())
         self.active_fruit = fruits.none
         self.tile_to_remove = 1 #debug: remove later
+        with open("maze.txt", "r") as file:
+            file_contents = file.read()
+        for character in file_contents:
+            if not character in (str(maze.wall), str(maze.empty), str(maze.dot), str(maze.power), "\n"):
+                print(f"!WARNING!\nit seems like the maze.txt file contains unsuppported character: '{character}'\nthe game will interpret these as empty spaces\nmake sure that the maze.txt file is correct\npress ctrl+c to quit, or press enter to continue anyway")
+                input()
+                break
+        file_contents = file_contents.splitlines()
+        if False in [len(i) == len(file_contents[0]) for i in file_contents]:
+            raise RuntimeError("it seems like the lines of the maze.txt file have an inconsistent length")
+        if self.maze_width_in_tiles != len(file_contents[0]) or self.maze_height_in_tiles != len(file_contents):
+            print(f"!WARNING!\nit seems like the dimentions of the maze.txt are different than expected:\ngot: {len(file_contents[0])}x{len(file_contents)}\nexpected: {self.maze_width_in_tiles}x{self.maze_height_in_tiles}\nthe game my not behave as expected\nmake sure that the maze.txt file is correct\npress ctrl+c to quit, or press enter to continue anyway")
+            input()
+        self.maze = [[b for b in a] for a in file_contents]
+        
+        
+        
     def set_input(self, key):
         assert key <= 4, f"input number should be between 1 and 4, not {key}"
         self.input = key
