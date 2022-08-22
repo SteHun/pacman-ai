@@ -16,6 +16,8 @@ class Window:
         self.width = 224
         self.height = 288
         self.fill_color = (0, 0, 0)
+        self.fruit_position = self.get_fruit_position((self.game_object.tile_to_left_of_fruit[0] + 0.5, self.game_object.tile_to_left_of_fruit[1]))
+        number_of_fruits = 8
         number_of_sprites_per_enemy_type = 4
         scared_blue_enemy_sprite_position = (0, 4)
         scared_white_enemy_sprite_position = (1, 4)
@@ -54,6 +56,10 @@ class Window:
         self.scared_blue_rect = get_rect(*scared_blue_enemy_sprite_position)
         self.scared_white_rect = get_rect(*scared_white_enemy_sprite_position)
 
+        #load fruits
+        self.fruit_sheet = enlarge_image(pygame.image.load(path.join("images", "fruit.png")), self.size_multiplier)
+        self.fruit_rects = tuple([get_rect(i, 0) for i in range(number_of_fruits)])
+
     def refresh(self):
 
         for event in pygame.event.get():
@@ -68,6 +74,10 @@ class Window:
         self.screen.blit(self.bg, (0, 0))
 
         self.screen.blit(self.player_sprites[self.game_object.player.direction - 1], self.scale_position(self.game_object.player.x_pos, self.game_object.player.y_pos))
+
+        if self.game_object.active_fruit != game.fruits.none:
+            # self.blit_sprite_by_tile(self.screen, self.fruit_sheet, self.game_object.tile_to_left_of_fruit, area=self.fruit_rects[self.game_object.active_fruit - 1])
+            self.screen.blit(self.fruit_sheet, self.fruit_position, area=self.fruit_rects[self.game_object.active_fruit - 1])
         #!ENEMY BLITTING UNFINISHED!#
         #!ENEMIES WILL NEVER BE SCARED/SCARED WHITE!#
         for enemy in self.game_object.enemies:
@@ -81,6 +91,10 @@ class Window:
                 self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.clyde_rects[enemy.direction - 1])
 
         pygame.display.flip()
+
+    def get_fruit_position(self, position):
+        center = tuple([i * self.tile_width_height + self.tile_width_height / 2 for i in position])
+        return tuple([i - self.sprite_width_height / 2 for i in center])
     
 
 if __name__ == "__main__":
