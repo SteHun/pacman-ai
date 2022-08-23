@@ -79,6 +79,9 @@ class Player:
         self.y_pos = 8 * self.y_tile_pos + self.y_pos_in_tile
         self.max_x_pos = self.x_pos + 20
         self.max_y_pos = self.y_pos + 20
+        self.min_x_pos = self.x_pos - 20
+        self.min_y_pos = self.y_pos - 20
+
         self.x_movement = 2
         self.y_movement = 2
         self.is_going_down_right = True
