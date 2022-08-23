@@ -31,7 +31,7 @@ class Window:
         #lambdas
         enlarge_image = lambda image, factor : pygame.transform.scale(image, (image.get_width()*factor, image.get_height()*factor))
         get_rect = lambda x_cord, y_cord : (self.sprite_width_height*x_cord, self.sprite_width_height*y_cord, self.sprite_width_height, self.sprite_width_height)
-        self.scale_position = lambda x_pos, y_pos : tuple([i * self.size_multiplier for i in (x_pos, y_pos)])
+        self.scale_position = lambda x_pos, y_pos : tuple([(i * self.size_multiplier) - self.sprite_width_height / 2 for i in (x_pos, y_pos)])
 
         #load background
         self.bg = pygame.image.load(path.join("images", "maze.png"))
@@ -41,7 +41,7 @@ class Window:
         #load player
         player_right = enlarge_image(pygame.image.load(path.join("images", "pacman.png")), self.size_multiplier)
         player_up = pygame.transform.rotate(player_right, 90)
-        player_left = pygame.transform.rotate(player_up, 90)
+        player_left = pygame.transform.flip(player_right, True, False)
         player_down = pygame.transform.flip(player_up, False, True)
         self.player_sprites = (player_up, player_down, player_left, player_right)
 
