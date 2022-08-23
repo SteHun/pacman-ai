@@ -72,17 +72,16 @@ class Game:
 
 class Player:
     def __init__(self):
-        self.x_pos = 24
-        self.y_pos = 24
-        self.max_x_pos = 44
-        self.max_y_pos = 44
-        self.min_x_pos = 4
-        self.min_y_pos = 4
+        self.x_tile_pos = 14 
+        self.y_tile_pos = 25
+        self.x_pos_in_tile, self.y_pos_in_tile = 3, 4
+        self.x_pos = 8 * self.x_tile_pos + self.x_pos_in_tile
+        self.y_pos = 8 * self.y_tile_pos + self.y_pos_in_tile
+        self.max_x_pos = self.x_pos + 20
+        self.max_y_pos = self.y_pos + 20
         self.x_movement = 2
         self.y_movement = 2
         self.is_going_down_right = True
-        self.x_tile_pos = None #add later
-        self.y_tile_pos = None #add later
         self.direction = directions.up
     
     def set_direction(self, direction):
