@@ -22,7 +22,7 @@ class Window:
         scared_blue_enemy_sprite_position = (0, 4)
         scared_white_enemy_sprite_position = (1, 4)
 
-        self.dot_map = [[item == game.maze.dot for item in row] for row in self.game_object.maze]
+        self.dot_map = [[item == str(game.maze.dot) for item in row] for row in self.game_object.maze]
 
         self.size = self.width, self.height = self.width*self.size_multiplier, self.height*self.size_multiplier
 
