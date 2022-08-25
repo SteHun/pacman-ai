@@ -89,7 +89,6 @@ class Player:
         self.min_y_pos = self.y_pos - 20
 
         self.options_for_moving = [False for i in range(4)]
-        #TODO? Also maybye consider having the maze be saved in just ints, that saves a lot of conversions
         self.options_for_moving[directions.up] = self.game_object.maze[self.y_tile_pos - 1][self.y_tile_pos] != maze.wall
         self.options_for_moving[directions.down] = self.game_object.maze[self.y_tile_pos + 1][self.y_tile_pos] != maze.wall
         self.options_for_moving[directions.left] = self.game_object.maze[self.y_tile_pos][self.y_tile_pos - 1] != maze.wall
