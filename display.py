@@ -59,7 +59,7 @@ class Window:
 
         #load fruits
         self.fruit_sheet = enlarge_image(pygame.image.load(path.join("images", "fruit.png")), self.size_multiplier)
-        self.fruit_rects = tuple([get_rect(i, 0) for i in range(number_of_fruits)])
+        self.fruit_rects = tuple([get_rect(i, 0) for i in range(number_of_fruits + 1)])
 
     def refresh(self):
 
@@ -84,22 +84,22 @@ class Window:
 
         self.screen.blit(self.bg, (0, 0))
 
-        self.screen.blit(self.player_sprites[self.game_object.player.direction - 1], self.scale_position(self.game_object.player.x_pos, self.game_object.player.y_pos))
+        self.screen.blit(self.player_sprites[self.game_object.player.direction], self.scale_position(self.game_object.player.x_pos, self.game_object.player.y_pos))
 
         if self.game_object.active_fruit != game.fruits.none:
-            # self.blit_sprite_by_tile(self.screen, self.fruit_sheet, self.game_object.tile_to_left_of_fruit, area=self.fruit_rects[self.game_object.active_fruit - 1])
-            self.screen.blit(self.fruit_sheet, self.fruit_position, area=self.fruit_rects[self.game_object.active_fruit - 1])
+            # self.blit_sprite_by_tile(self.screen, self.fruit_sheet, self.game_object.tile_to_left_of_fruit, area=self.fruit_rects[self.game_object.active_fruit])
+            self.screen.blit(self.fruit_sheet, self.fruit_position, area=self.fruit_rects[self.game_object.active_fruit])
         #!ENEMY BLITTING UNFINISHED!#
         #!ENEMIES WILL NEVER BE SCARED/SCARED WHITE!#
         for enemy in self.game_object.enemies:
             if type(enemy) == game.Blinky:
-                self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.blinky_rects[enemy.direction - 1])
+                self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.blinky_rects[enemy.direction])
             elif type(enemy) == game.Pinky:
-                self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.pinky_rects[enemy.direction - 1])
+                self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.pinky_rects[enemy.direction])
             elif type(enemy) == game.Inky:
-                self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.inky_rects[enemy.direction - 1])
+                self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.inky_rects[enemy.direction])
             elif type(enemy) == game.Clyde:
-                self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.clyde_rects[enemy.direction - 1])
+                self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.clyde_rects[enemy.direction])
 
         pygame.display.flip()
 

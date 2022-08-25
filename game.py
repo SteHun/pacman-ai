@@ -1,9 +1,9 @@
 class directions:
-    up = 1
-    down = 2
-    left = 3
-    right = 4
-    no = 0
+    up = 0
+    down = 1
+    left = 2
+    right = 3
+    no = 4
 class maze:
     wall = 0
     empty = 1
@@ -69,7 +69,7 @@ class Game:
             if self.tile_to_remove < 26: self.tile_to_remove += 1
 
             for entity in self.enemies:# + (self.player,):
-                entity.set_direction((self.clock // self.fps % 4) + 1)
+                entity.set_direction((self.clock // self.fps % 4))
             self.active_fruit = self.active_fruit + 1 if self.active_fruit < fruits.key else fruits.none
 
 class Player:
@@ -88,7 +88,7 @@ class Player:
         self.min_x_pos = self.x_pos - 20
         self.min_y_pos = self.y_pos - 20
 
-        self.options_for_moving = [False for i in range(5)] #TODO? Maybye consider changing up/down/left/right to start at 0 instead of 1
+        self.options_for_moving = [False for i in range(4)] 
         #TODO? Also maybye consider having the maze be saved in just ints, that saves a lot of conversions
         self.options_for_moving[directions.up] = int(self.game_object.maze[self.y_tile_pos - 1][self.y_tile_pos]) != maze.wall
         self.options_for_moving[directions.down] = int(self.game_object.maze[self.y_tile_pos + 1][self.y_tile_pos]) != maze.wall
