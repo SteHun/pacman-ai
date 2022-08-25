@@ -30,7 +30,7 @@ class Game:
             file_contents = file.read()
         for character in file_contents:
             if not character in (str(maze.wall), str(maze.empty), str(maze.dot), str(maze.power), "\n"):
-                print(f"!WARNING!\nit seems like the maze.txt file contains unsuppported character: '{character}'\nthe game will interpret these as empty spaces\nmake sure that the maze.txt file is correct\npress ctrl+c to quit, or press enter to continue anyway")
+                raise RuntimeError(f"it seems like the maze.txt file contains unsuppported character: '{character}'\nmake sure that the maze.txt file is correct")
                 input()
                 break
         file_contents = file_contents.splitlines()
@@ -39,7 +39,7 @@ class Game:
         if self.maze_width_in_tiles != len(file_contents[0]) or self.maze_height_in_tiles != len(file_contents):
             print(f"!WARNING!\nit seems like the dimentions of the maze.txt are different than expected:\ngot: {len(file_contents[0])}x{len(file_contents)}\nexpected: {self.maze_width_in_tiles}x{self.maze_height_in_tiles}\nthe game my not behave as expected\nmake sure that the maze.txt file is correct\npress ctrl+c to quit, or press enter to continue anyway")
             input()
-        self.maze = [[b for b in a] for a in file_contents]
+        self.maze = [[int(b) for b in a] for a in file_contents]
 
         self.fps = 60
         self.tile_width_height = 8
@@ -88,12 +88,12 @@ class Player:
         self.min_x_pos = self.x_pos - 20
         self.min_y_pos = self.y_pos - 20
 
-        self.options_for_moving = [False for i in range(4)] 
+        self.options_for_moving = [False for i in range(4)]
         #TODO? Also maybye consider having the maze be saved in just ints, that saves a lot of conversions
-        self.options_for_moving[directions.up] = int(self.game_object.maze[self.y_tile_pos - 1][self.y_tile_pos]) != maze.wall
-        self.options_for_moving[directions.down] = int(self.game_object.maze[self.y_tile_pos + 1][self.y_tile_pos]) != maze.wall
-        self.options_for_moving[directions.left] = int(self.game_object.maze[self.y_tile_pos][self.y_tile_pos - 1]) != maze.wall
-        self.options_for_moving[directions.right] = int(self.game_object.maze[self.y_tile_pos][self.y_tile_pos + 1]) != maze.wall
+        self.options_for_moving[directions.up] = self.game_object.maze[self.y_tile_pos - 1][self.y_tile_pos] != maze.wall
+        self.options_for_moving[directions.down] = self.game_object.maze[self.y_tile_pos + 1][self.y_tile_pos] != maze.wall
+        self.options_for_moving[directions.left] = self.game_object.maze[self.y_tile_pos][self.y_tile_pos - 1] != maze.wall
+        self.options_for_moving[directions.right] = self.game_object.maze[self.y_tile_pos][self.y_tile_pos + 1] != maze.wall
 
         self.direction = directions.up
         # DEBUG CODE
