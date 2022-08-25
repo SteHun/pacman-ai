@@ -57,6 +57,7 @@ class Game:
     def set_input(self, key):
         assert key <= 4, f"input number should be between 1 and 4, not {key}"
         self.input = key
+        self.player.set_direction(key)
     def advance(self):
         self.clock += 1
         self.player.advance()
@@ -66,7 +67,7 @@ class Game:
             self.maze[3][self.tile_to_remove] = maze.empty
             if self.tile_to_remove < 26: self.tile_to_remove += 1
 
-            for entity in (self.player,) + self.enemies:
+            for entity in self.enemies:# + (self.player,):
                 entity.set_direction((self.clock // self.fps % 4) + 1)
             self.active_fruit = self.active_fruit + 1 if self.active_fruit < fruits.key else fruits.none
 

@@ -11,6 +11,7 @@ class Window:
         self.game_object = game_object
         self.size_multiplier = size_multiplier
 
+        self.key_pressed = game.directions.left
         self.tile_width_height = 8 * self.size_multiplier
         self.sprite_width_height = 16 * self.size_multiplier
         self.width = 224
@@ -64,6 +65,16 @@ class Window:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    self.key_pressed = game.directions.up
+                elif event.key == pygame.K_DOWN:
+                    self.key_pressed = game.directions.down
+                elif event.key == pygame.K_LEFT:
+                    self.key_pressed = game.directions.left
+                elif event.key == pygame.K_RIGHT:
+                    self.key_pressed = game.directions.right
+                
         
         for row_index, row in enumerate(self.game_object.maze):
             for item_index, item in enumerate(row):
@@ -97,15 +108,7 @@ class Window:
         return tuple([i - self.sprite_width_height / 2 for i in center])
     
 
-if __name__ == "__main__":
-    frame_duration = 1/60
-    game_instance = game.Game()
-    window_instance = Window(game_instance, size_multiplier=2)
-    while 1:
-        start_time = time()
-        window_instance.refresh()
-        game_instance.advance()
-        sleep(max(0, frame_duration - (time() - start_time)))
+
 
 #:ADD THIS STUFF TO DEBUG GRAPHICS:#
 # self.screen.blit(self.test_ball, self.test_ball_rect)
