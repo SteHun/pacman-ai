@@ -24,19 +24,8 @@ class fruits:
 
 class Game:
     def __init__(self):
-        self.fps = 60
         self.maze_width_in_tiles = 28
         self.maze_height_in_tiles = 36
-        self.tile_width_height = 8
-        self.tile_to_left_of_fruit = (13,19)
-        self.tile_to_right_of_fruit = (self.tile_to_left_of_fruit[0] + 1, self.tile_to_left_of_fruit[1])
-        self.clock = 0
-        #self.maze = [[maze.dot]*self.maze_width_in_tiles for _ in range(self.maze_height_in_tiles)] #create maze structure later
-        self.input = directions.no
-        self.player = Player()
-        self.enemies = (Blinky(), Pinky(), Inky(), Clyde())
-        self.active_fruit = fruits.none
-        self.tile_to_remove = 1 #debug: remove later
         with open("maze.txt", "r") as file:
             file_contents = file.read()
         for character in file_contents:
@@ -51,6 +40,18 @@ class Game:
             print(f"!WARNING!\nit seems like the dimentions of the maze.txt are different than expected:\ngot: {len(file_contents[0])}x{len(file_contents)}\nexpected: {self.maze_width_in_tiles}x{self.maze_height_in_tiles}\nthe game my not behave as expected\nmake sure that the maze.txt file is correct\npress ctrl+c to quit, or press enter to continue anyway")
             input()
         self.maze = [[b for b in a] for a in file_contents]
+
+        self.fps = 60
+        self.tile_width_height = 8
+        self.tile_to_left_of_fruit = (13,19)
+        self.tile_to_right_of_fruit = (self.tile_to_left_of_fruit[0] + 1, self.tile_to_left_of_fruit[1])
+        self.clock = 0
+        #self.maze = [[maze.dot]*self.maze_width_in_tiles for _ in range(self.maze_height_in_tiles)] #create maze structure later
+        self.input = directions.no
+        self.player = Player(self)
+        self.enemies = (Blinky(), Pinky(), Inky(), Clyde())
+        self.active_fruit = fruits.none
+        self.tile_to_remove = 1 #debug: remove later
         
         
         
@@ -72,10 +73,14 @@ class Game:
             self.active_fruit = self.active_fruit + 1 if self.active_fruit < fruits.key else fruits.none
 
 class Player:
-    def __init__(self):
+    def __init__(self, game_object):
+        self.game_object = game_object
+
+        self.speed = 1.5 * 0.80 #This is the speed for level 1! 
+
         self.x_tile_pos = 14 
         self.y_tile_pos = 25
-        self.x_pos_in_tile, self.y_pos_in_tile = 3, 4
+        self.x_pos_in_tile, self.y_pos_in_tile = 0, 4
         self.x_pos = 8 * self.x_tile_pos + self.x_pos_in_tile
         self.y_pos = 8 * self.y_tile_pos + self.y_pos_in_tile
         self.max_x_pos = self.x_pos + 20
@@ -83,10 +88,18 @@ class Player:
         self.min_x_pos = self.x_pos - 20
         self.min_y_pos = self.y_pos - 20
 
-        self.x_movement = 2
-        self.y_movement = 2
-        self.is_going_down_right = True
+        self.options_for_moving = [False for i in range(5)] #TODO? Maybye consider changing up/down/left/right to start at 0 instead of 1
+        #TODO? Also maybye consider having the maze be saved in just ints, that saves a lot of conversions
+        self.options_for_moving[directions.up] = int(self.game_object.maze[self.y_tile_pos - 1][self.y_tile_pos]) != maze.wall
+        self.options_for_moving[directions.down] = int(self.game_object.maze[self.y_tile_pos + 1][self.y_tile_pos]) != maze.wall
+        self.options_for_moving[directions.left] = int(self.game_object.maze[self.y_tile_pos][self.y_tile_pos - 1]) != maze.wall
+        self.options_for_moving[directions.right] = int(self.game_object.maze[self.y_tile_pos][self.y_tile_pos + 1]) != maze.wall
+
         self.direction = directions.up
+        # DEBUG CODE
+        # self.x_movement = 2
+        # self.y_movement = 2
+        # self.is_going_down_right = True
     
     def set_direction(self, direction):
         self.direction = direction
@@ -95,20 +108,22 @@ class Player:
         self.x_pos, self.y_pos = x_pos, y_pos
 
     def advance(self):
-        if self.is_going_down_right:
-            if self.x_pos + self.x_movement >= self.max_x_pos or self.y_pos + self.y_movement >= self.max_y_pos:
-                self.is_going_down_right = False
-                self.advance()
-                return
-            self.x_pos += self.x_movement
-            self.y_pos += self.y_movement
-        else:
-            if self.x_pos - self.x_movement <= self.min_x_pos or self.y_pos - self.y_movement <= self.min_y_pos:
-                self.is_going_down_right = True
-                self.advance()
-                return
-            self.x_pos -= self.x_movement
-            self.y_pos -= self.y_movement
+        
+        pass
+        # if self.is_going_down_right:
+        #     if self.x_pos + self.x_movement >= self.max_x_pos or self.y_pos + self.y_movement >= self.max_y_pos:
+        #         self.is_going_down_right = False
+        #         self.advance()
+        #         return
+        #     self.x_pos += self.x_movement
+        #     self.y_pos += self.y_movement
+        # else:
+        #     if self.x_pos - self.x_movement <= self.min_x_pos or self.y_pos - self.y_movement <= self.min_y_pos:
+        #         self.is_going_down_right = True
+        #         self.advance()
+        #         return
+        #     self.x_pos -= self.x_movement
+        #     self.y_pos -= self.y_movement
 
 class Enemy:
     def __init__(self):
