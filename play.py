@@ -5,7 +5,7 @@ from time import time, sleep
 if __name__ == "__main__":
     frame_duration = 1/60
     game_instance = game.Game()
-    window_instance = display.Window(game_instance, size_multiplier=2, show_hitboxes=True)
+    window_instance = display.Window(game_instance, size_multiplier=2, show_hitboxes=False)
     while 1:
         start_time = time()
         window_instance.refresh()

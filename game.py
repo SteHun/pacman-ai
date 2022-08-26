@@ -58,7 +58,6 @@ class Game:
     def set_input(self, key):
         assert key <= 4, f"input number should be between 1 and 4, not {key}"
         self.input = key
-        self.player.set_direction(key)
     def advance(self):
         self.clock += 1
         self.player.advance()
@@ -78,9 +77,10 @@ class Player:
 
         self.speed = 1.5 * 0.80 #This is the speed for level 1! 
 
+        self.x_tile_middle, self.y_tile_middle = 3.5, 3.5
         self.x_tile_pos = 14 
         self.y_tile_pos = 25
-        self.x_pos_in_tile, self.y_pos_in_tile = 0, 3.5
+        self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
         self.x_pos = 8 * self.x_tile_pos + self.x_pos_in_tile
         self.y_pos = 8 * self.y_tile_pos + self.y_pos_in_tile
         self.max_x_pos = self.x_pos + 20
@@ -146,12 +146,49 @@ class Player:
         options_for_moving[directions.left] = maze_layout[y_pos][x_pos - 1] != maze.wall
         options_for_moving[directions.right] = maze_layout[y_pos][x_pos + 1] != maze.wall
         return options_for_moving
-
+    
+    def center_left_right(self):
+        if abs(self.x_pos_in_tile - self.x_tile_middle) <= self.speed:
+            self.x_pos_in_tile = self.x_tile_middle
+            self.x_pos -= self.x_pos_in_tile - self.x_tile_middle
+        elif self.x_pos_in_tile > self.x_tile_middle:
+            self.x_pos_in_tile -= self.speed
+            self.x_pos -= self.speed
+        else:
+            self.x_pos_in_tile += self.speed
+            self.x_pos += self.speed
+    
+    def center_up_down(self):
+        if abs(self.y_pos_in_tile - self.y_tile_middle) <= self.speed:
+            self.y_pos_in_tile = self.y_tile_middle
+            self.y_pos -= self.y_pos_in_tile - self.y_tile_middle
+        elif self.y_pos_in_tile > self.y_tile_middle:
+            self.y_pos_in_tile -= self.speed
+            self.y_pos -= self.speed
+        else:
+            self.y_pos_in_tile += self.speed
+            self.y_pos += self.speed
 
     def advance(self):
-        tile_has_changed = self.move(self.speed, self.direction)
-        if tile_has_changed:
-            self.options_for_moving = self.get_options_for_moving(self.game_object.maze, self.x_tile_pos, self.y_tile_pos)
+        if self.options_for_moving[self.game_object.input]: self.direction = self.game_object.input
+        if self.options_for_moving[self.direction]:
+            tile_has_changed = self.move(self.speed, self.direction)
+            if tile_has_changed:    self.options_for_moving = self.get_options_for_moving(self.game_object.maze, self.x_tile_pos, self.y_tile_pos)
+            if self.y_pos_in_tile != self.y_tile_middle and (self.direction == directions.left or self.direction == directions.right):
+                self.center_up_down()
+            elif self.x_pos_in_tile != self.y_tile_middle and (self.direction == directions.up or self.direction == directions.down):
+                self.center_left_right()
+        elif self.x_pos_in_tile != self.x_tile_middle and (self.direction == directions.left or self.direction == directions.right):
+            self.center_left_right()
+        elif self.y_pos_in_tile != self.y_tile_middle and (self.direction == directions.up or self.direction == directions.down):
+            self.center_up_down()
+        
+        self.x_pos = self.x_tile_pos * self.game_object.tile_width_height + self.x_pos_in_tile
+        self.y_pos = self.y_tile_pos * self.game_object.tile_width_height + self.y_pos_in_tile
+
+
+        #elif 
+
         # if self.is_going_down_right:
         #     if self.x_pos + self.x_movement >= self.max_x_pos or self.y_pos + self.y_movement >= self.max_y_pos:
         #         self.is_going_down_right = False
