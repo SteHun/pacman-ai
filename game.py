@@ -80,7 +80,7 @@ class Player:
 
         self.x_tile_pos = 14 
         self.y_tile_pos = 25
-        self.x_pos_in_tile, self.y_pos_in_tile = 0, 4
+        self.x_pos_in_tile, self.y_pos_in_tile = 0, 3.5
         self.x_pos = 8 * self.x_tile_pos + self.x_pos_in_tile
         self.y_pos = 8 * self.y_tile_pos + self.y_pos_in_tile
         self.max_x_pos = self.x_pos + 20
@@ -88,11 +88,7 @@ class Player:
         self.min_x_pos = self.x_pos - 20
         self.min_y_pos = self.y_pos - 20
 
-        self.options_for_moving = [False for i in range(4)]
-        self.options_for_moving[directions.up] = self.game_object.maze[self.y_tile_pos - 1][self.y_tile_pos] != maze.wall
-        self.options_for_moving[directions.down] = self.game_object.maze[self.y_tile_pos + 1][self.y_tile_pos] != maze.wall
-        self.options_for_moving[directions.left] = self.game_object.maze[self.y_tile_pos][self.y_tile_pos - 1] != maze.wall
-        self.options_for_moving[directions.right] = self.game_object.maze[self.y_tile_pos][self.y_tile_pos + 1] != maze.wall
+        self.options_for_moving = self.get_options_for_moving(self.game_object.maze, self.x_tile_pos, self.y_tile_pos)
 
         self.direction = directions.up
         # DEBUG CODE
@@ -123,20 +119,39 @@ class Player:
         while self.y_pos_in_tile >= self.game_object.tile_width_height:
             self.y_tile_pos += 1
             self.y_pos_in_tile -= self.game_object.tile_width_height
+            return True
         while self.y_pos_in_tile <= 0:
             self.y_tile_pos -= 1
             self.y_pos_in_tile += self.game_object.tile_width_height
+            return True
         while self.x_pos_in_tile >= self.game_object.tile_width_height:
             self.x_tile_pos += 1
             self.x_pos_in_tile -= self.game_object.tile_width_height
+            return True
         while self.x_pos_in_tile <= 0:
             self.x_tile_pos -= 1
             self.x_pos_in_tile += self.game_object.tile_width_height
-        
+            return True
+        return False
+    
+    def get_options_for_moving(self, maze_layout, x_pos, y_pos):
+        options_for_moving = [False for i in range(4)]
+        pass
+        if x_pos <= 0 or x_pos >= len(maze_layout[0]) - 1:
+            pass # this will be for when the player wraps around the screen, this is just a placeholder to prevent the game from chrashing
+            return options_for_moving
+        # going to the bottom edge of the screen or far out of bound will make this crash, but that should never happen, right?
+        options_for_moving[directions.up] = maze_layout[y_pos - 1][x_pos] != maze.wall
+        options_for_moving[directions.down] = maze_layout[y_pos + 1][x_pos] != maze.wall
+        options_for_moving[directions.left] = maze_layout[y_pos][x_pos - 1] != maze.wall
+        options_for_moving[directions.right] = maze_layout[y_pos][x_pos + 1] != maze.wall
+        return options_for_moving
 
 
     def advance(self):
-        self.move(self.speed, self.direction)
+        tile_has_changed = self.move(self.speed, self.direction)
+        if tile_has_changed:
+            self.options_for_moving = self.get_options_for_moving(self.game_object.maze, self.x_tile_pos, self.y_tile_pos)
         # if self.is_going_down_right:
         #     if self.x_pos + self.x_movement >= self.max_x_pos or self.y_pos + self.y_movement >= self.max_y_pos:
         #         self.is_going_down_right = False
