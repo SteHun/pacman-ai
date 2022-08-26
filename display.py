@@ -6,10 +6,11 @@ from time import time, sleep
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #MAKE SURE TO MULTIPLY POSITIONS BY SIZE_MULTIPLIER WHEN FINALIZING
 class Window:
-    def __init__(self, game_object, size_multiplier=2):
+    def __init__(self, game_object, size_multiplier=2, show_hitboxes=False):
         pygame.init()
         self.game_object = game_object
         self.size_multiplier = size_multiplier
+        self.show_hitboxes = show_hitboxes
 
         self.key_pressed = game.directions.left
         self.tile_width_height = 8 * self.size_multiplier
@@ -83,6 +84,12 @@ class Window:
                 pygame.draw.rect(self.bg, self.fill_color, (self.tile_width_height * item_index, self.tile_width_height * row_index, self.tile_width_height, self.tile_width_height))
 
         self.screen.blit(self.bg, (0, 0))
+
+        if self.show_hitboxes:
+            player_object = self.game_object.player
+            twh = self.game_object.tile_width_height
+            pygame.draw.rect(self.screen, (255, 255, 0), pygame.Rect(
+                player_object.x_tile_pos*twh*self.size_multiplier, player_object.y_tile_pos*twh*self.size_multiplier, twh*self.size_multiplier, twh*self.size_multiplier))
 
         self.screen.blit(self.player_sprites[self.game_object.player.direction], self.scale_position(self.game_object.player.x_pos, self.game_object.player.y_pos))
 

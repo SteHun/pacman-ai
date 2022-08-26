@@ -105,10 +105,38 @@ class Player:
     
     def set_position(self, x_pos, y_pos):
         self.x_pos, self.y_pos = x_pos, y_pos
+    
+    def move(self, speed, direction):
+        if direction == directions.up:
+            self.y_pos_in_tile -= speed
+            self.y_pos -= speed
+        elif direction == directions.down:
+            self.y_pos_in_tile += speed
+            self.y_pos += speed
+        elif direction == directions.left:
+            self.x_pos_in_tile -= speed
+            self.x_pos -= speed
+        elif direction == directions.right:
+            self.x_pos_in_tile += speed
+            self.x_pos += speed
+        
+        while self.y_pos_in_tile >= self.game_object.tile_width_height:
+            self.y_tile_pos += 1
+            self.y_pos_in_tile -= self.game_object.tile_width_height
+        while self.y_pos_in_tile <= 0:
+            self.y_tile_pos -= 1
+            self.y_pos_in_tile += self.game_object.tile_width_height
+        while self.x_pos_in_tile >= self.game_object.tile_width_height:
+            self.x_tile_pos += 1
+            self.x_pos_in_tile -= self.game_object.tile_width_height
+        while self.x_pos_in_tile <= 0:
+            self.x_tile_pos -= 1
+            self.x_pos_in_tile += self.game_object.tile_width_height
+        
+
 
     def advance(self):
-        
-        pass
+        self.move(self.speed, self.direction)
         # if self.is_going_down_right:
         #     if self.x_pos + self.x_movement >= self.max_x_pos or self.y_pos + self.y_movement >= self.max_y_pos:
         #         self.is_going_down_right = False
