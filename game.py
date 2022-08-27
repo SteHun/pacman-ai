@@ -51,7 +51,7 @@ class Game:
         self.player = Player(self)
         self.enemies = (Blinky(), Pinky(), Inky(), Clyde())
         self.active_fruit = fruits.none
-        self.tile_to_remove = 1 #debug: remove later
+        # self.tile_to_remove = 1 # DEBUG CODE FOR DOTS
         
         
         
@@ -64,8 +64,9 @@ class Game:
         for enemy in self.enemies:
             enemy.advance()
         if self.clock % self.fps == 0:
-            self.maze[3][self.tile_to_remove] = maze.empty
-            if self.tile_to_remove < 26: self.tile_to_remove += 1
+            # DEBUG CODE FOR DOTS
+            # self.maze[3][self.tile_to_remove] = maze.empty
+            # if self.tile_to_remove < 26: self.tile_to_remove += 1
 
             for entity in self.enemies:# + (self.player,):
                 entity.set_direction((self.clock // self.fps % 4))
@@ -89,6 +90,7 @@ class Player:
         self.min_y_pos = self.y_pos - 20
 
         self.options_for_moving = self.get_options_for_moving(self.game_object.maze, self.x_tile_pos, self.y_tile_pos)
+        self.dont_move_next_frame = False
 
         self.direction = directions.up
         # DEBUG CODE
@@ -171,9 +173,21 @@ class Player:
 
     def advance(self):
         if self.options_for_moving[self.game_object.input]: self.direction = self.game_object.input
+        if self.dont_move_next_frame:
+            self.dont_move_next_frame = False
+            return
         if self.options_for_moving[self.direction]:
             tile_has_changed = self.move(self.speed, self.direction)
-            if tile_has_changed:    self.options_for_moving = self.get_options_for_moving(self.game_object.maze, self.x_tile_pos, self.y_tile_pos)
+            if tile_has_changed:
+                self.options_for_moving = self.get_options_for_moving(self.game_object.maze, self.x_tile_pos, self.y_tile_pos)
+                if self.game_object.maze[self.y_tile_pos][self.x_tile_pos] == maze.dot:
+                    self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
+                    # TODO: add some mechanism to end the game if all dots have been eaten
+                    self.dont_move_next_frame = True
+                elif self.game_object.maze[self.y_tile_pos][self.x_tile_pos] == maze.power:
+                    self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
+                    # TODO: add some mechanism to end the game if all dots have been eaten
+                    # TODO: add mechanism to give pacman power
             if self.y_pos_in_tile != self.y_tile_middle and (self.direction == directions.left or self.direction == directions.right):
                 self.center_up_down()
             elif self.x_pos_in_tile != self.y_tile_middle and (self.direction == directions.up or self.direction == directions.down):
