@@ -1,5 +1,6 @@
 import display
 import game
+from sys import exit
 from time import time, sleep
 
 if __name__ == "__main__":
@@ -11,5 +12,6 @@ if __name__ == "__main__":
         window_instance.refresh()
         game_instance.set_input(window_instance.key_pressed)
         game_instance.advance()
+        if game_instance.game_has_ended:    exit(0)
         sleep(max(0, frame_duration - (time() - start_time)))
 

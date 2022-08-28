@@ -52,6 +52,7 @@ class Game:
         self.enemies = (Blinky(), Pinky(), Inky(), Clyde())
         self.active_fruit = fruits.none
         # self.tile_to_remove = 1 # DEBUG CODE FOR DOTS
+        self.game_has_ended = False
         
         
         
@@ -59,8 +60,12 @@ class Game:
         assert key <= 4, f"input number should be between 1 and 4, not {key}"
         self.input = key
     def advance(self):
+        if self.game_has_ended: return
         self.clock += 1
         self.player.advance()
+        if self.player.amount_of_dots <= 0:
+            self.game_has_ended = True
+            return
         for enemy in self.enemies:
             enemy.advance()
         if self.clock % self.fps == 0:
@@ -76,7 +81,13 @@ class Player:
     def __init__(self, game_object):
         self.game_object = game_object
 
-        self.speed = 1.5 * 0.80 #This is the speed for level 1! 
+        self.speed = 1.5 * 0.80 #This is the speed for level 1!
+        
+        self.amount_of_dots = 0
+        for row in self.game_object.maze:
+            for item in row:
+                if item == maze.dot or item == maze.power:
+                    self.amount_of_dots += 1
 
         self.x_tile_middle, self.y_tile_middle = 3.5, 3.5
         self.x_tile_pos = 14 
@@ -182,11 +193,11 @@ class Player:
                 self.options_for_moving = self.get_options_for_moving(self.game_object.maze, self.x_tile_pos, self.y_tile_pos)
                 if self.game_object.maze[self.y_tile_pos][self.x_tile_pos] == maze.dot:
                     self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
-                    # TODO: add some mechanism to end the game if all dots have been eaten
+                    self.amount_of_dots -= 1
                     self.dont_move_next_frame = True
                 elif self.game_object.maze[self.y_tile_pos][self.x_tile_pos] == maze.power:
                     self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
-                    # TODO: add some mechanism to end the game if all dots have been eaten
+                    self.amount_of_dots -= 1
                     # TODO: add mechanism to give pacman power
             if self.y_pos_in_tile != self.y_tile_middle and (self.direction == directions.left or self.direction == directions.right):
                 self.center_up_down()
