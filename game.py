@@ -219,6 +219,22 @@ class Player:
                         self.score += 50
                         # TODO: add mechanism to give pacman power
                     elif (self.x_tile_pos, self.y_tile_pos) == self.game_object.tile_to_left_of_fruit or (self.x_tile_pos, self.y_tile_pos) == self.game_object.tile_to_right_of_fruit:
+                        if self.game_object.active_fruit == fruits.cherry:
+                            self.score += 100
+                        elif self.game_object.active_fruit == fruits.berry:
+                            self.score += 300
+                        elif self.game_object.active_fruit == fruits.peach:
+                            self.score += 500
+                        elif self.game_object.active_fruit == fruits.apple:
+                            self.score += 700
+                        elif self.game_object.active_fruit == fruits.grape:
+                            self.score += 1000
+                        elif self.game_object.active_fruit == fruits.galaxian:
+                            self.score += 2000
+                        elif self.game_object.active_fruit == fruits.bell:
+                            self.score += 3000
+                        elif self.game_object.active_fruit == fruits.key:
+                            self.score += 5000
                         self.game_object.active_fruit = fruits.none
                 except IndexError:
                     if self.x_tile_pos == -2:   self.x_tile_pos = 28
