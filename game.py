@@ -149,10 +149,8 @@ class Player:
     
     def get_options_for_moving(self, maze_layout, x_pos, y_pos):
         options_for_moving = [False for i in range(4)]
-        pass
         if x_pos <= 0 or x_pos >= len(maze_layout[0]) - 1:
-            pass # this will be for when the player wraps around the screen, this is just a placeholder to prevent the game from chrashing
-            return options_for_moving
+            return [False, False, True, True]
         # going to the bottom edge of the screen or far out of bound will make this crash, but that should never happen, right?
         options_for_moving[directions.up] = maze_layout[y_pos - 1][x_pos] != maze.wall
         options_for_moving[directions.down] = maze_layout[y_pos + 1][x_pos] != maze.wall
@@ -191,14 +189,20 @@ class Player:
             tile_has_changed = self.move(self.speed, self.direction)
             if tile_has_changed:
                 self.options_for_moving = self.get_options_for_moving(self.game_object.maze, self.x_tile_pos, self.y_tile_pos)
-                if self.game_object.maze[self.y_tile_pos][self.x_tile_pos] == maze.dot:
-                    self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
-                    self.amount_of_dots -= 1
-                    self.dont_move_next_frame = True
-                elif self.game_object.maze[self.y_tile_pos][self.x_tile_pos] == maze.power:
-                    self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
-                    self.amount_of_dots -= 1
-                    # TODO: add mechanism to give pacman power
+                try:
+                    if self.x_tile_pos < 0: raise IndexError
+                    if self.game_object.maze[self.y_tile_pos][self.x_tile_pos] == maze.dot:
+                        self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
+                        self.amount_of_dots -= 1
+                        self.dont_move_next_frame = True
+                    elif self.game_object.maze[self.y_tile_pos][self.x_tile_pos] == maze.power:
+                        self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
+                        self.amount_of_dots -= 1
+                        # TODO: add mechanism to give pacman power
+                except IndexError:
+                    if self.x_tile_pos == -2:   self.x_tile_pos = 28
+                    elif self.x_tile_pos == 29: self.x_tile_pos = -1
+                    
             if self.y_pos_in_tile != self.y_tile_middle and (self.direction == directions.left or self.direction == directions.right):
                 self.center_up_down()
             elif self.x_pos_in_tile != self.y_tile_middle and (self.direction == directions.up or self.direction == directions.down):
