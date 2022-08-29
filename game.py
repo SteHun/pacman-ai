@@ -276,12 +276,14 @@ class Enemy:
     def setup_vars(self):
         self.x_tile_middle, self.y_tile_middle = 3.5, 3.5
         self.direction = directions.up
+        self.speed = 0.75 * 1.5
+        self.switch_at_next_intersection = False
 
 
     def initialize(self):
         self.x_pos, self.y_pos = 8 * self.x_tile_pos + self.x_pos_in_tile, 8 * self.y_tile_pos + self.y_pos_in_tile
-        self.next_move = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
-        self.direction = self.next_move
+        self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
+        self.direction = self.next_direction
         # self.max_x_pos, self.max_y_pos = self.x_pos + 20, self.y_pos + 20 # DEBUG CODE
         # self.min_x_pos, self.min_y_pos = self.x_pos - 20, self.y_pos - 20 # DEBUG CODE
         # self.x_movement, self.y_movement = 2, 2 # DEBUG CODE
@@ -330,8 +332,64 @@ class Enemy:
             elif directions.down in best_options:  return directions.down
             else:   return directions.right 
 
+    def move(self, speed, direction):
+        if direction == directions.up:
+            self.y_pos_in_tile -= speed
+            self.y_pos -= speed
+        elif direction == directions.down:
+            self.y_pos_in_tile += speed
+            self.y_pos += speed
+        elif direction == directions.left:
+            self.x_pos_in_tile -= speed
+            self.x_pos -= speed
+        elif direction == directions.right:
+            self.x_pos_in_tile += speed
+            self.x_pos += speed
+        
+        while self.y_pos_in_tile >= self.game_object.tile_width_height:
+            self.y_tile_pos += 1
+            self.y_pos_in_tile -= self.game_object.tile_width_height
+            return True
+        while self.y_pos_in_tile <= 0:
+            self.y_tile_pos -= 1
+            self.y_pos_in_tile += self.game_object.tile_width_height
+            return True
+        while self.x_pos_in_tile >= self.game_object.tile_width_height:
+            self.x_tile_pos += 1
+            self.x_pos_in_tile -= self.game_object.tile_width_height
+            return True
+        while self.x_pos_in_tile <= 0:
+            self.x_tile_pos -= 1
+            self.x_pos_in_tile += self.game_object.tile_width_height
+            return True
+        return False
+
     def advance(self):
-        pass
+        if self.move(self.speed, self.direction):
+            # self.target_x, self.target_y = self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
+            self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
+            if self.next_direction != self.direction:
+                self.switch_at_next_intersection = True
+        if self.switch_at_next_intersection:
+            if self.direction == directions.up and self.y_pos_in_tile <= self.y_tile_middle:
+                self.y_pos_in_tile = self.y_tile_middle
+                self.direction = self.next_direction
+                self.switch_at_next_intersection = False
+            elif self.direction == directions.down and self.y_pos_in_tile >= self.y_tile_middle:
+                self.y_pos_in_tile = self.y_tile_middle
+                self.direction = self.next_direction
+                self.switch_at_next_intersection = False
+            elif self.direction == directions.left and self.x_pos_in_tile <= self.x_tile_middle:
+                self.y_pos_in_tile = self.y_tile_middle
+                self.direction = self.next_direction
+                self.switch_at_next_intersection = False
+            elif self.direction == directions.right and self.x_pos_in_tile >= self.x_tile_middle:
+                self.x_pos_in_tile = self.x_tile_middle
+                self.direction = self.next_direction
+                self.switch_at_next_intersection = False
+
+        self.x_pos = self.x_tile_pos * self.game_object.tile_width_height + self.x_pos_in_tile
+        self.y_pos = self.y_tile_pos * self.game_object.tile_width_height + self.y_pos_in_tile
         # if self.is_going_down_right:
         #     if self.x_pos + self.x_movement >= self.max_x_pos or self.y_pos + self.y_movement >= self.max_y_pos:
         #         self.is_going_down_right = False
