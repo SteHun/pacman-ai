@@ -12,6 +12,10 @@ class Window:
         self.size_multiplier = size_multiplier
         self.show_hitboxes = show_hitboxes
 
+        self.font = pygame.font.Font("pacfont.ttf", 20)
+        self.previous_score = self.game_object.player.score
+        self.score_text = self.font.render(str(self.previous_score), True, (255, 255, 255))
+        self.score_text_rect = self.score_text.get_rect()
         self.key_pressed = game.directions.left
         self.tile_width_height = 8 * self.size_multiplier
         self.sprite_width_height = 16 * self.size_multiplier
@@ -63,6 +67,10 @@ class Window:
         self.fruit_rects = tuple([get_rect(i, 0) for i in range(number_of_fruits + 1)])
 
     def refresh(self):
+        if self.previous_score != self.game_object.player.score:
+            self.previous_score = self.game_object.player.score
+            self.score_text = self.font.render(str(self.previous_score), True, (255, 255, 255))
+            self.score_text_rect = self.score_text.get_rect()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
@@ -75,7 +83,7 @@ class Window:
                     self.key_pressed = game.directions.left
                 elif event.key == pygame.K_RIGHT:
                     self.key_pressed = game.directions.right
-                
+        
         
         for row_index, row in enumerate(self.game_object.maze):
             for item_index, item in enumerate(row):
@@ -84,6 +92,8 @@ class Window:
                 pygame.draw.rect(self.bg, self.fill_color, (self.tile_width_height * item_index, self.tile_width_height * row_index, self.tile_width_height, self.tile_width_height))
 
         self.screen.blit(self.bg, (0, 0))
+
+        self.screen.blit(self.score_text, self.score_text_rect)
 
         if self.show_hitboxes:
             player_object = self.game_object.player

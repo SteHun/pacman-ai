@@ -96,6 +96,8 @@ class Player:
     def __init__(self, game_object):
         self.game_object = game_object
 
+        self.score = 0
+
         self.speed = 1.5 * 0.80 #This is the speed for level 1!
         
         self.amount_of_dots = 0
@@ -209,10 +211,12 @@ class Player:
                     if self.game_object.maze[self.y_tile_pos][self.x_tile_pos] == maze.dot:
                         self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
                         self.amount_of_dots -= 1
+                        self.score += 10
                         self.dont_move_next_frame = True
                     elif self.game_object.maze[self.y_tile_pos][self.x_tile_pos] == maze.power:
                         self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
                         self.amount_of_dots -= 1
+                        self.score += 50
                         # TODO: add mechanism to give pacman power
                     elif (self.x_tile_pos, self.y_tile_pos) == self.game_object.tile_to_left_of_fruit or (self.x_tile_pos, self.y_tile_pos) == self.game_object.tile_to_right_of_fruit:
                         self.game_object.active_fruit = fruits.none
