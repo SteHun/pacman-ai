@@ -1,3 +1,5 @@
+from random import uniform
+
 class directions:
     up = 0
     down = 1
@@ -10,15 +12,15 @@ class maze:
     dot = 2
     power = 3
 class fruits:
-    none = 0
-    cherry = 1
-    berry = 2
-    peach = 3
-    apple = 4
-    grape = 5
-    galaxian = 6
-    bell = 7
-    key = 8
+    cherry = 0
+    berry = 1
+    peach = 2
+    apple = 3
+    grape = 4
+    galaxian = 5
+    bell = 6
+    key = 7
+    none = 8
 
 
 
@@ -51,6 +53,9 @@ class Game:
         self.player = Player(self)
         self.enemies = (Blinky(), Pinky(), Inky(), Clyde())
         self.active_fruit = fruits.none
+        self.fruit_apprearances = [self.player.amount_of_dots - 70, self.player.amount_of_dots - 170]
+        self.fruits_have_been_eaten = False
+        self.min_fruit_duration, self.max_fruit_duration = 9, 10
         # self.tile_to_remove = 1 # DEBUG CODE FOR DOTS
         self.game_has_ended = False
         
@@ -62,12 +67,21 @@ class Game:
     def advance(self):
         if self.game_has_ended: return
         self.clock += 1
+
         self.player.advance()
         if self.player.amount_of_dots <= 0:
             self.game_has_ended = True
             return
+        elif not self.fruits_have_been_eaten and self.player.amount_of_dots == self.fruit_apprearances[0]:
+            self.active_fruit = fruits.cherry
+            del self.fruit_apprearances[0]
+            self.fruit_timer = self.clock + uniform(self.min_fruit_duration, self.max_fruit_duration) * 60
+            if len(self.fruit_apprearances) == 0:   self.fruits_have_been_eaten = True
+        if self.active_fruit != fruits.none and self.clock >= self.fruit_timer:
+            self.active_fruit = fruits.none
         for enemy in self.enemies:
             enemy.advance()
+        
         if self.clock % self.fps == 0:
             # DEBUG CODE FOR DOTS
             # self.maze[3][self.tile_to_remove] = maze.empty
@@ -75,7 +89,7 @@ class Game:
 
             for entity in self.enemies:# + (self.player,):
                 entity.set_direction((self.clock // self.fps % 4))
-            self.active_fruit = self.active_fruit + 1 if self.active_fruit < fruits.key else fruits.none
+            # self.active_fruit = self.active_fruit + 1 if self.active_fruit < fruits.key else fruits.none
 
 class Player:
     def __init__(self, game_object):
@@ -199,6 +213,8 @@ class Player:
                         self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
                         self.amount_of_dots -= 1
                         # TODO: add mechanism to give pacman power
+                    elif (self.x_tile_pos, self.y_tile_pos) == self.game_object.tile_to_left_of_fruit or (self.x_tile_pos, self.y_tile_pos) == self.game_object.tile_to_right_of_fruit:
+                        self.game_object.active_fruit = fruits.none
                 except IndexError:
                     if self.x_tile_pos == -2:   self.x_tile_pos = 28
                     elif self.x_tile_pos == 29: self.x_tile_pos = -1
