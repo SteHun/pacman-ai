@@ -49,7 +49,7 @@ class Game:
         self.tile_to_right_of_fruit = (self.tile_to_left_of_fruit[0] + 1, self.tile_to_left_of_fruit[1])
         self.clock = 0
         #self.maze = [[maze.dot]*self.maze_width_in_tiles for _ in range(self.maze_height_in_tiles)] #create maze structure later
-        self.input = directions.no
+        self.input = directions.left
         self.player = Player(self)
         self.enemies = (Blinky(), Pinky(), Inky(), Clyde())
         self.active_fruit = fruits.none
@@ -63,7 +63,7 @@ class Game:
         
         
     def set_input(self, key):
-        assert key <= 4, f"input number should be between 1 and 4, not {key}"
+        assert key <= 3, f"input number should be between 0 and 3, not {key}"
         self.input = key
     def advance(self):
         if self.game_has_ended: return
@@ -89,7 +89,7 @@ class Game:
             # if self.tile_to_remove < 26: self.tile_to_remove += 1
 
             for entity in self.enemies:# + (self.player,):
-                entity.set_direction((self.clock // self.fps % 4))
+                entity.direction = self.clock // self.fps % 4
             # self.active_fruit = self.active_fruit + 1 if self.active_fruit < fruits.key else fruits.none
 
 class Player:
@@ -126,11 +126,6 @@ class Player:
         # self.y_movement = 2
         # self.is_going_down_right = True
     
-    def set_direction(self, direction):
-        self.direction = direction
-    
-    def set_position(self, x_pos, y_pos):
-        self.x_pos, self.y_pos = x_pos, y_pos
     
     def move(self, speed, direction):
         if direction == directions.up:
@@ -283,11 +278,6 @@ class Enemy:
         self.is_going_down_right = True
         self.direction = directions.up
 
-    def set_direction(self, direction):
-        self.direction = direction
-
-    def set_position(self, x_pos, y_pos):
-        self.x_pos, self.y_pos = x_pos, y_pos
     
     def advance(self):
         if self.is_going_down_right:
