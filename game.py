@@ -292,8 +292,10 @@ class Enemy:
     def get_options_for_moving(self, maze_layout, x_pos, y_pos):
         #options_for_moving = [False for i in range(4)]
         options_for_moving = []
-        if x_pos <= 0 or x_pos >= len(maze_layout[0]) - 1:
-            options_for_moving = [((x_pos, y_pos - 1)), (x_pos, y_pos + 1)]
+        if x_pos <= 0:# or x_pos >= len(maze_layout[0]) - 1:
+            options_for_moving = [directions.left]
+        elif x_pos >= len(maze_layout[0]) - 1:
+            options_for_moving = [directions.right]
         # going to the bottom edge of the screen or far out of bound will make this crash, but that should never happen, right?
         else:
             if maze_layout[y_pos - 1][x_pos] != maze.wall and self.direction != directions.down:  options_for_moving.append(directions.up)
@@ -366,8 +368,14 @@ class Enemy:
 
     def advance(self):
         if self.move(self.speed, self.direction):
-            # self.target_x, self.target_y = self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
-            self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
+            if self.x_tile_pos == -2:   self.x_tile_pos = 28
+            elif self.x_tile_pos == 29: self.x_tile_pos = -1
+            if self.y_tile_pos == 16 and (self.x_tile_pos in range(-1, 6) or self.x_tile_pos in range(22, 29)):
+                # change speed
+                pass
+            else:
+                # self.target_x, self.target_y = self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
+                self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
             if self.next_direction != self.direction:
                 self.switch_at_next_intersection = True
         if self.switch_at_next_intersection:
