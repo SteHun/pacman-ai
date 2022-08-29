@@ -51,7 +51,7 @@ class Game:
         #self.maze = [[maze.dot]*self.maze_width_in_tiles for _ in range(self.maze_height_in_tiles)] #create maze structure later
         self.input = directions.left
         self.player = Player(self)
-        self.enemies = (Blinky(), Pinky(), Inky(), Clyde())
+        self.enemies = (Blinky(self),)# Pinky(self), Inky(self), Clyde(self))
         self.active_fruit = fruits.none
         self.fruit_to_appear = fruits.cherry
         self.fruit_apprearances = [self.player.amount_of_dots - 70, self.player.amount_of_dots - 170]
@@ -83,13 +83,13 @@ class Game:
         for enemy in self.enemies:
             enemy.advance()
         
-        if self.clock % self.fps == 0:
+        # if self.clock % self.fps == 0:
             # DEBUG CODE FOR DOTS
             # self.maze[3][self.tile_to_remove] = maze.empty
             # if self.tile_to_remove < 26: self.tile_to_remove += 1
 
-            for entity in self.enemies:# + (self.player,):
-                entity.direction = self.clock // self.fps % 4
+            # for entity in self.enemies:# + (self.player,):
+            #     entity.direction = self.clock // self.fps % 4
             # self.active_fruit = self.active_fruit + 1 if self.active_fruit < fruits.key else fruits.none
 
 class Player:
@@ -266,55 +266,116 @@ class Player:
         #     self.y_pos -= self.y_movement
 
 class Enemy:
-    def __init__(self):
+    def __init__(self, game_object):
+        self.game_object = game_object
+        self.setup_vars()
+        self.x_tile_pos, self.y_tile_pos = 14, 13
+        self.target_x, self.target_y = 2, 0
         self.initialize()
 
-    def initialize(self):
-        self.x_tile_pos = None #add later
-        self.y_tile_pos = None #add later
-        self.max_x_pos, self.max_y_pos = self.x_pos + 20, self.y_pos + 20
-        self.min_x_pos, self.min_y_pos = self.x_pos - 20, self.y_pos - 20
-        self.x_movement, self.y_movement = 2, 2
-        self.is_going_down_right = True
+    def setup_vars(self):
+        self.x_tile_middle, self.y_tile_middle = 3.5, 3.5
         self.direction = directions.up
 
-    
-    def advance(self):
-        if self.is_going_down_right:
-            if self.x_pos + self.x_movement >= self.max_x_pos or self.y_pos + self.y_movement >= self.max_y_pos:
-                self.is_going_down_right = False
-                self.advance()
-                return
-            self.x_pos += self.x_movement
-            self.y_pos += self.y_movement
+
+    def initialize(self):
+        self.x_pos, self.y_pos = 8 * self.x_tile_pos + self.x_pos_in_tile, 8 * self.y_tile_pos + self.y_pos_in_tile
+        self.next_move = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
+        self.direction = self.next_move
+        # self.max_x_pos, self.max_y_pos = self.x_pos + 20, self.y_pos + 20 # DEBUG CODE
+        # self.min_x_pos, self.min_y_pos = self.x_pos - 20, self.y_pos - 20 # DEBUG CODE
+        # self.x_movement, self.y_movement = 2, 2 # DEBUG CODE
+        # self.is_going_down_right = True # DEBUG CODE
+
+    def get_options_for_moving(self, maze_layout, x_pos, y_pos):
+        #options_for_moving = [False for i in range(4)]
+        options_for_moving = []
+        if x_pos <= 0 or x_pos >= len(maze_layout[0]) - 1:
+            options_for_moving = [((x_pos, y_pos - 1)), (x_pos, y_pos + 1)]
+        # going to the bottom edge of the screen or far out of bound will make this crash, but that should never happen, right?
         else:
-            if self.x_pos - self.x_movement <= self.min_x_pos or self.y_pos - self.y_movement <= self.min_y_pos:
-                self.is_going_down_right = True
-                self.advance()
-                return
-            self.x_pos -= self.x_movement
-            self.y_pos -= self.y_movement
+            if maze_layout[y_pos - 1][x_pos] != maze.wall and self.direction != directions.down:  options_for_moving.append(directions.up)
+            if maze_layout[y_pos + 1][x_pos] != maze.wall and self.direction != directions.up:  options_for_moving.append(directions.down)
+            if maze_layout[y_pos][x_pos - 1] != maze.wall and self.direction != directions.right:  options_for_moving.append(directions.left)
+            if maze_layout[y_pos][x_pos + 1] != maze.wall and self.direction != directions.left:  options_for_moving.append(directions.right)
+        return options_for_moving
+    
+    def get_next_move(self, maze_layout, x_pos, y_pos, target_x, target_y):
+        options_for_moving = self.get_options_for_moving(maze_layout, x_pos, y_pos)
+        if len(options_for_moving) == 1:    return options_for_moving[0]
+        target = (target_x, target_y)
+        get_difference = lambda a, b: a - b if a >= b else b - a
+        possible_positions = []
+        for option in options_for_moving:
+            if option == directions.up: possible_positions.append((x_pos, y_pos - 1))
+            elif option == directions.down: possible_positions.append((x_pos, y_pos + 1))
+            elif option == directions.left: possible_positions.append((x_pos - 1, y_pos))
+            elif option == directions.right: possible_positions.append((x_pos + 1, y_pos))
+        best_distance = None
+        best_options = []
+        for position, option in zip(possible_positions, options_for_moving):
+            distance_vector = tuple([get_difference(position[i], target[i])**2 for i in range(2)])
+            distance = sum(distance_vector)
+            if best_distance == None or distance < best_distance:
+                best_distance = distance
+                best_options = [option]
+            elif distance == best_distance:
+                best_options.append(option)
+        
+        if len(best_options) == 1:
+            return best_options[0]
+        else:
+            if directions.up in best_options:   return directions.up
+            elif directions.left in best_options:   return directions.left
+            elif directions.down in best_options:  return directions.down
+            else:   return directions.right 
 
+    def advance(self):
+        pass
+        # if self.is_going_down_right:
+        #     if self.x_pos + self.x_movement >= self.max_x_pos or self.y_pos + self.y_movement >= self.max_y_pos:
+        #         self.is_going_down_right = False
+        #         self.advance()
+        #         return
+        #     self.x_pos += self.x_movement
+        #     self.y_pos += self.y_movement
+        # else:
+        #     if self.x_pos - self.x_movement <= self.min_x_pos or self.y_pos - self.y_movement <= self.min_y_pos:
+        #         self.is_going_down_right = True
+        #         self.advance()
+        #         return
+        #     self.x_pos -= self.x_movement
+        #     self.y_pos -= self.y_movement
+    
 class Blinky(Enemy):
-    def __init__(self):
-        self.x_pos = 40
-        self.y_pos = 24
+    def __init__(self, game_object):
+        self.game_object = game_object
+        self.target_x, self.target_y = 25, 2
+        self.setup_vars()
+        self.x_tile_pos, self.y_tile_pos = 14, 13
+        self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
         self.initialize()
 
-class Pinky(Enemy):
-    def __init__(self):
-        self.x_pos = 56
-        self.y_pos = 24
-        self.initialize()
+# class Pinky(Enemy):
+#     def __init__(self, game_object):
+#         self.game_object = game_object
+#         self.setup_vars()
+#         self.x_pos = 56
+#         self.y_pos = 24
+#         self.initialize()
 
-class Inky(Enemy):
-    def __init__(self):
-        self.x_pos = 72
-        self.y_pos = 24
-        self.initialize()
+# class Inky(Enemy):
+#     def __init__(self, game_object):
+#         self.game_object = game_object
+#         self.setup_vars()
+#         self.x_pos = 72
+#         self.y_pos = 24
+#         self.initialize()
 
-class Clyde(Enemy):
-    def __init__(self):
-        self.x_pos = 88
-        self.y_pos = 24
-        self.initialize()
+# class Clyde(Enemy):
+#     def __init__(self, game_object):
+#         self.game_object = game_object
+#         self.setup_vars()
+#         self.x_pos = 88
+#         self.y_pos = 24
+#         self.initialize()
