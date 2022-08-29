@@ -289,7 +289,7 @@ class Enemy:
         # self.x_movement, self.y_movement = 2, 2 # DEBUG CODE
         # self.is_going_down_right = True # DEBUG CODE
 
-    def get_options_for_moving(self, maze_layout, x_pos, y_pos):
+    def get_options_for_moving(self, maze_layout, x_pos, y_pos, restrict_up):
         #options_for_moving = [False for i in range(4)]
         options_for_moving = []
         if x_pos <= 0:# or x_pos >= len(maze_layout[0]) - 1:
@@ -298,14 +298,14 @@ class Enemy:
             options_for_moving = [directions.right]
         # going to the bottom edge of the screen or far out of bound will make this crash, but that should never happen, right?
         else:
-            if maze_layout[y_pos - 1][x_pos] != maze.wall and self.direction != directions.down:  options_for_moving.append(directions.up)
+            if maze_layout[y_pos - 1][x_pos] != maze.wall and self.direction != directions.down and not restrict_up:  options_for_moving.append(directions.up)
             if maze_layout[y_pos + 1][x_pos] != maze.wall and self.direction != directions.up:  options_for_moving.append(directions.down)
             if maze_layout[y_pos][x_pos - 1] != maze.wall and self.direction != directions.right:  options_for_moving.append(directions.left)
             if maze_layout[y_pos][x_pos + 1] != maze.wall and self.direction != directions.left:  options_for_moving.append(directions.right)
         return options_for_moving
     
-    def get_next_move(self, maze_layout, x_pos, y_pos, target_x, target_y):
-        options_for_moving = self.get_options_for_moving(maze_layout, x_pos, y_pos)
+    def get_next_move(self, maze_layout, x_pos, y_pos, target_x, target_y, restrict_up = False):
+        options_for_moving = self.get_options_for_moving(maze_layout, x_pos, y_pos, restrict_up)
         if len(options_for_moving) == 1:    return options_for_moving[0]
         target = (target_x, target_y)
         get_difference = lambda a, b: a - b if a >= b else b - a
@@ -370,11 +370,13 @@ class Enemy:
         if self.move(self.speed, self.direction):
             if self.x_tile_pos == -2:   self.x_tile_pos = 28
             elif self.x_tile_pos == 29: self.x_tile_pos = -1
+            self.target_x, self.target_y = self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
             if self.y_tile_pos == 16 and (self.x_tile_pos in range(-1, 6) or self.x_tile_pos in range(22, 29)):
                 # change speed
                 pass
+            elif (self.y_tile_pos == 13 or self.y_tile_pos == 25) and self.x_tile_pos in range(10, 18):
+                self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y, restrict_up=True)
             else:
-                # self.target_x, self.target_y = self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
                 self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
             if self.next_direction != self.direction:
                 self.switch_at_next_intersection = True
