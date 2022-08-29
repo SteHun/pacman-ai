@@ -53,6 +53,7 @@ class Game:
         self.player = Player(self)
         self.enemies = (Blinky(), Pinky(), Inky(), Clyde())
         self.active_fruit = fruits.none
+        self.fruit_to_appear = fruits.cherry
         self.fruit_apprearances = [self.player.amount_of_dots - 70, self.player.amount_of_dots - 170]
         self.fruits_have_been_eaten = False
         self.min_fruit_duration, self.max_fruit_duration = 9, 10
@@ -73,7 +74,7 @@ class Game:
             self.game_has_ended = True
             return
         elif not self.fruits_have_been_eaten and self.player.amount_of_dots == self.fruit_apprearances[0]:
-            self.active_fruit = fruits.cherry
+            self.active_fruit = self.fruit_to_appear
             del self.fruit_apprearances[0]
             self.fruit_timer = self.clock + uniform(self.min_fruit_duration, self.max_fruit_duration) * 60
             if len(self.fruit_apprearances) == 0:   self.fruits_have_been_eaten = True
