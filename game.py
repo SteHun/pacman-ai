@@ -399,7 +399,7 @@ class Enemy:
 
     def advance(self):
         calculate_new_direction = self.move(self.speed, self.direction)
-        if self.total_mode_switches <= len(self.mode_switch_times) and self.game_object.clock == self.mode_switch_times[self.total_mode_switches][0]:
+        if self.total_mode_switches < len(self.mode_switch_times) and self.game_object.clock == self.mode_switch_times[self.total_mode_switches][0]:
             self.switch_direction()
             calculate_new_direction = True
             self.mode = self.mode_switch_times[self.total_mode_switches][1]
