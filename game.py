@@ -21,6 +21,9 @@ class fruits:
     bell = 6
     key = 7
     none = 8
+class modes:
+    scatter = 0
+    chase = 1
 
 
 
@@ -277,6 +280,27 @@ class Enemy:
         self.x_tile_middle, self.y_tile_middle = 3.5, 3.5
         self.direction = directions.up
         self.speed = 0.75 * 1.5
+        self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
+        fps = self.game_object.fps
+        self.is_frightened = False
+        self.has_been_eaten = False
+        self.next_mode = None
+        self.mode_switch_times = [
+            (7 * fps, modes.chase),
+            (20 * fps, modes.scatter),
+            (7 * fps, modes.chase),
+            (20 * fps, modes.scatter),
+            (5 * fps, modes.chase),
+            (20 * fps, modes.scatter),
+            (5 * fps, modes.chase)
+            ]
+        #self.mode_switch_times = [self.mode_switch_times[0]] + [(self.mode_switch_times[i][0] + self.mode_switch_times[i - 1][0], self.mode_switch_times[i][1]) for i in range(1, len(self.mode_switch_times))]
+        time_to_add = 0
+        for index, item in enumerate(self.mode_switch_times):
+            self.mode_switch_times[index] = (item[0] + time_to_add, item[1])
+            time_to_add = self.mode_switch_times[index][0]
+        self.total_mode_switches = 0
+        self.mode = modes.scatter
         self.switch_at_next_intersection = False
 
 
@@ -288,6 +312,7 @@ class Enemy:
         # self.min_x_pos, self.min_y_pos = self.x_pos - 20, self.y_pos - 20 # DEBUG CODE
         # self.x_movement, self.y_movement = 2, 2 # DEBUG CODE
         # self.is_going_down_right = True # DEBUG CODE
+    def get_chase_target(self): return self.scatter_target_x, self.scatter_target_y
 
     def get_options_for_moving(self, maze_layout, x_pos, y_pos, restrict_up):
         #options_for_moving = [False for i in range(4)]
@@ -366,11 +391,25 @@ class Enemy:
             return True
         return False
 
+    def switch_direction(self):
+        if self.direction == directions.up: self.direction = directions.down
+        elif self.direction == directions.down: self.direction = directions.up
+        elif self.direction == directions.left: self.direction = directions.right
+        elif self.direction == directions.right: self.direction = directions.left
+
     def advance(self):
-        if self.move(self.speed, self.direction):
+        calculate_new_direction = self.move(self.speed, self.direction)
+        if self.total_mode_switches <= len(self.mode_switch_times) and self.game_object.clock == self.mode_switch_times[self.total_mode_switches][0]:
+            self.switch_direction()
+            calculate_new_direction = True
+            self.mode = self.mode_switch_times[self.total_mode_switches][1]
+            if self.mode == modes.scatter:  self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
+            self.total_mode_switches += 1
+
+        if calculate_new_direction:
             if self.x_tile_pos == -2:   self.x_tile_pos = 28
             elif self.x_tile_pos == 29: self.x_tile_pos = -1
-            self.target_x, self.target_y = self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
+            if self.mode == modes.chase:    self.target_x, self.target_y = self.get_chase_target()
             if self.y_tile_pos == 16 and (self.x_tile_pos in range(-1, 6) or self.x_tile_pos in range(22, 29)):
                 # change speed
                 pass
@@ -418,11 +457,13 @@ class Enemy:
 class Blinky(Enemy):
     def __init__(self, game_object):
         self.game_object = game_object
-        self.target_x, self.target_y = 25, 2
+        self.scatter_target_x, self.scatter_target_y = 25, 2
         self.setup_vars()
         self.x_tile_pos, self.y_tile_pos = 14, 13
         self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
         self.initialize()
+    def get_chase_target(self):
+        return self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
 
 # class Pinky(Enemy):
 #     def __init__(self, game_object):
