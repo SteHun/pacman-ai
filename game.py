@@ -54,7 +54,7 @@ class Game:
         #self.maze = [[maze.dot]*self.maze_width_in_tiles for _ in range(self.maze_height_in_tiles)] #create maze structure later
         self.input = directions.left
         self.player = Player(self)
-        self.enemies = (Blinky(self),)# Pinky(self), Inky(self), Clyde(self))
+        self.enemies = (Blinky(self), Pinky(self), Inky(self), Clyde(self))
         self.active_fruit = fruits.none
         self.fruit_to_appear = fruits.cherry
         self.fruit_apprearances = [self.player.amount_of_dots - 70, self.player.amount_of_dots - 170]
@@ -302,6 +302,11 @@ class Enemy:
         self.total_mode_switches = 0
         self.mode = modes.scatter
         self.switch_at_next_intersection = False
+        self.is_in_house = False
+        self.is_exiting_house = False
+        self.house_exit_x_tile_pos, self.house_exit_y_tile_pos = 14, 13
+        self.house_exit_x_pos_in_tile, self.house_exit_y_pos_in_tile = 0, self.y_tile_middle
+        self.house_exit_x_pos, self.house_exit_y_pos = 112, 107.5
 
 
     def initialize(self):
@@ -398,6 +403,28 @@ class Enemy:
         elif self.direction == directions.right: self.direction = directions.left
 
     def advance(self):
+        if self.is_in_house:
+            if not self.is_exiting_house and self.game_object.player.amount_of_dots <= self.dots_to_exit:
+                self.is_exiting_house = True
+                if self.x_pos + self.speed / 2 <= self.house_exit_x_pos:
+                    self.direction = directions.right
+                elif self.x_pos - self.speed / 2 >= self.house_exit_x_pos:
+                    self.direction = directions.left
+                else:
+                    self.x_pos = self.house_exit_x_pos
+                    self.direction = directions.up
+            elif self.is_exiting_house:
+                self.move(self.speed, self.direction)
+                if self.direction != directions.up and (self.house_exit_x_pos - self.speed / 2 <= self.x_pos and self.house_exit_x_pos + self.speed / 2 >= self.x_pos):
+                    self.direction = directions.up
+                    self.x_pos = self.house_exit_x_pos
+                elif self.direction == directions.up and (self.house_exit_y_pos + self.speed / 2 >= self.y_pos):
+                    self.x_pos, self.y_pos = self.house_exit_x_pos, self.house_exit_y_pos
+                    self.x_tile_pos, self.y_tile_pos = self.house_exit_x_tile_pos, self.house_exit_y_tile_pos
+                    self.x_pos_in_tile, self.y_pos_in_tile = self.house_exit_x_pos_in_tile, self.house_exit_y_pos_in_tile
+                    self.is_in_house = False
+                    self.is_exiting_house = False
+            return
         calculate_new_direction = self.move(self.speed, self.direction)
         if self.total_mode_switches < len(self.mode_switch_times) and self.game_object.clock == self.mode_switch_times[self.total_mode_switches][0]:
             self.switch_direction()
@@ -465,26 +492,41 @@ class Blinky(Enemy):
     def get_chase_target(self):
         return self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
 
-# class Pinky(Enemy):
-#     def __init__(self, game_object):
-#         self.game_object = game_object
-#         self.setup_vars()
-#         self.x_pos = 56
-#         self.y_pos = 24
-#         self.initialize()
+class Pinky(Enemy):
+    def __init__(self, game_object):
+        self.game_object = game_object
+        self.scatter_target_x, self.scatter_target_y = 3, 2
+        self.setup_vars()
+        self.x_tile_pos, self.y_tile_pos = 14, 16
+        self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
+        self.is_in_house = True
+        self.dots_to_exit = self.game_object.player.amount_of_dots - 0
+        self.initialize()
+    def get_chase_target(self):
+        return self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
 
-# class Inky(Enemy):
-#     def __init__(self, game_object):
-#         self.game_object = game_object
-#         self.setup_vars()
-#         self.x_pos = 72
-#         self.y_pos = 24
-#         self.initialize()
+class Inky(Enemy):
+    def __init__(self, game_object):
+        self.game_object = game_object
+        self.scatter_target_x, self.scatter_target_y = 3, 2
+        self.setup_vars()
+        self.x_tile_pos, self.y_tile_pos = 12, 16
+        self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
+        self.is_in_house = True
+        self.dots_to_exit = self.game_object.player.amount_of_dots - 10
+        self.initialize()
+    def get_chase_target(self):
+        return self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
 
-# class Clyde(Enemy):
-#     def __init__(self, game_object):
-#         self.game_object = game_object
-#         self.setup_vars()
-#         self.x_pos = 88
-#         self.y_pos = 24
-#         self.initialize()
+class Clyde(Enemy):
+    def __init__(self, game_object):
+        self.game_object = game_object
+        self.scatter_target_x, self.scatter_target_y = 3, 2
+        self.setup_vars()
+        self.x_tile_pos, self.y_tile_pos = 16, 16
+        self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
+        self.is_in_house = True
+        self.dots_to_exit = self.game_object.player.amount_of_dots - 20
+        self.initialize()
+    def get_chase_target(self):
+        return self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
