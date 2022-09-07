@@ -525,7 +525,6 @@ class Pinky(Enemy):
         self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
         self.is_in_house = True
         self.dots_to_exit = self.game_object.player.amount_of_dots - 0
-        self.mode = modes.chase
         self.initialize()
     def get_chase_target(self):
         player_direction = self.game_object.player.direction
