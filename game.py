@@ -519,15 +519,13 @@ class Pinky(Enemy):
     def __init__(self, game_object):
         self.game_object = game_object
         self.scatter_target_x, self.scatter_target_y = 3, 2
-        self.elroy = True# DEBUG!!!
+        self.elroy = False
         self.setup_vars()
         self.x_tile_pos, self.y_tile_pos = 14, 16
         self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
         self.is_in_house = True
         self.dots_to_exit = self.game_object.player.amount_of_dots - 0
-        self.is_elroy_now = True# DEBUG!!!
         self.mode = modes.chase
-        self.dots_for_second_elroy_speedup = -1 # DEBUG!!!
         self.initialize()
     def get_chase_target(self):
         player_direction = self.game_object.player.direction
