@@ -504,8 +504,8 @@ class Blinky(Enemy):
         self.game_object = game_object
         self.scatter_target_x, self.scatter_target_y = 25, 2
         self.elroy = True
-        self.dots_for_elroy = self.game_object.player.amount_of_dots - 10
-        self.dots_for_second_elroy_speedup = self.game_object.player.amount_of_dots - 20
+        self.dots_for_elroy = 20
+        self.dots_for_second_elroy_speedup = 10
         self.first_elroy_speed = 0.80 * 1.5
         self.second_elroy_speed = 0.85 * 1.5
         self.setup_vars()
