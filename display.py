@@ -6,11 +6,11 @@ from time import time, sleep
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #MAKE SURE TO MULTIPLY POSITIONS BY SIZE_MULTIPLIER WHEN FINALIZING
 class Window:
-    def __init__(self, game_object, size_multiplier=2, show_hitboxes=False):
+    def __init__(self, game_object, size_multiplier=2, show_targets=False):
         pygame.init()
         self.game_object = game_object
         self.size_multiplier = size_multiplier
-        self.show_hitboxes = show_hitboxes
+        self.show_targets = show_targets
 
         self.font = pygame.font.Font("pacfont.ttf", 20)
         self.previous_score = self.game_object.player.score
@@ -95,11 +95,6 @@ class Window:
 
         self.screen.blit(self.score_text, self.score_text_rect)
 
-        if self.show_hitboxes:
-            player_object = self.game_object.player
-            twh = self.game_object.tile_width_height
-            pygame.draw.rect(self.screen, (255, 255, 0), pygame.Rect(
-                player_object.x_tile_pos*twh*self.size_multiplier, player_object.y_tile_pos*twh*self.size_multiplier, twh*self.size_multiplier, twh*self.size_multiplier))
 
         self.screen.blit(self.player_sprites[self.game_object.player.direction], self.scale_position(self.game_object.player.x_pos, self.game_object.player.y_pos))
 
@@ -117,6 +112,18 @@ class Window:
                 self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.inky_rects[enemy.direction])
             elif type(enemy) == game.Clyde:
                 self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.clyde_rects[enemy.direction])
+
+        if self.show_targets:
+            twh = self.game_object.tile_width_height
+            for enemy in self.game_object.enemies:
+                if type(enemy) == game.Blinky:  color = (255, 0, 0)
+                elif type(enemy) == game.Pinky: color = (255, 105, 180)
+                elif type(enemy) == game.Inky:    color = (0, 255, 255)
+                elif type(enemy) == game.Clyde: color = (255, 156, 0)
+                
+                pygame.draw.rect(self.screen, color, pygame.Rect(
+                    enemy.target_x*twh*self.size_multiplier, enemy.target_y*twh*self.size_multiplier, twh*self.size_multiplier, twh*self.size_multiplier
+                ))
 
         pygame.display.flip()
 
