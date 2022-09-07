@@ -428,12 +428,12 @@ class Enemy:
                     self.is_exiting_house = False
             return
 
-        if self.elroy and self.game_object.player.amount_of_dots == self.dots_for_elroy and not self.is_elroy_now:
+        if self.elroy and not self.is_elroy_now and self.game_object.player.amount_of_dots == self.dots_for_elroy:
             print("elroy mode active!")
             self.is_elroy_now = True
             self.mode = modes.chase
             self.speed = self.first_elroy_speed
-        elif self.elroy and self.game_object.player.amount_of_dots == self.dots_for_second_elroy_speedup and not self.is_second_elroy_now:
+        elif self.elroy and not self.is_second_elroy_now and self.game_object.player.amount_of_dots == self.dots_for_second_elroy_speedup:
             print("second elroy mode active!")
             self.is_second_elroy_now = True
             self.speed = self.second_elroy_speed
@@ -519,15 +519,28 @@ class Pinky(Enemy):
     def __init__(self, game_object):
         self.game_object = game_object
         self.scatter_target_x, self.scatter_target_y = 3, 2
-        self.elroy = False
+        self.elroy = True# DEBUG!!!
         self.setup_vars()
         self.x_tile_pos, self.y_tile_pos = 14, 16
         self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
         self.is_in_house = True
         self.dots_to_exit = self.game_object.player.amount_of_dots - 0
+        self.is_elroy_now = True# DEBUG!!!
+        self.mode = modes.chase
+        self.dots_for_second_elroy_speedup = -1 # DEBUG!!!
         self.initialize()
     def get_chase_target(self):
-        return self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
+        player_direction = self.game_object.player.direction
+        player_x_pos, player_y_pos = self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
+        if player_direction == directions.up:
+            return player_x_pos - 4, player_y_pos - 4
+        elif player_direction == directions.down:
+            return player_x_pos, player_y_pos + 4
+        elif player_direction == directions.left:
+            return player_x_pos - 4, player_y_pos
+        else:
+            return player_x_pos + 4, player_y_pos
+        
 
 class Inky(Enemy):
     def __init__(self, game_object):
