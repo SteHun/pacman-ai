@@ -55,6 +55,7 @@ class Game:
         self.input = directions.left
         self.player = Player(self)
         self.enemies = (Blinky(self), Pinky(self), Inky(self), Clyde(self))
+        self.enemies[2].set_enemy_for_teamwork(self.enemies[0])
         self.active_fruit = fruits.none
         self.fruit_to_appear = fruits.cherry
         self.fruit_apprearances = [self.player.amount_of_dots - 70, self.player.amount_of_dots - 170]
@@ -542,7 +543,7 @@ class Pinky(Enemy):
 class Inky(Enemy):
     def __init__(self, game_object):
         self.game_object = game_object
-        self.scatter_target_x, self.scatter_target_y = 3, 2
+        self.scatter_target_x, self.scatter_target_y = 27, 34
         self.elroy = False
         self.setup_vars()
         self.x_tile_pos, self.y_tile_pos = 12, 16
@@ -550,8 +551,22 @@ class Inky(Enemy):
         self.is_in_house = True
         self.dots_to_exit = self.game_object.player.amount_of_dots - 10
         self.initialize()
+    def set_enemy_for_teamwork(self, enemy):
+        self.enemy_for_teamwork = enemy
     def get_chase_target(self):
-        return self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
+        player_direction = self.game_object.player.direction
+        player_x_pos, player_y_pos = self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
+        teammate_x_pos, teammate_y_pos = self.enemy_for_teamwork.x_tile_pos, self.enemy_for_teamwork.y_tile_pos
+        # if player_direction == directions.up:
+        #     player_x_pos -= 2
+        #     player_y_pos -= 2
+        # elif player_direction == directions.down:
+        #     player_y_pos += 2
+        # elif player_direction == directions.left:
+        #     player_x_pos -= 2
+        # else:
+        #     player_x_pos += 2
+        return player_x_pos + (player_x_pos - teammate_x_pos), player_y_pos + (player_y_pos - teammate_y_pos)
 
 class Clyde(Enemy):
     def __init__(self, game_object):
