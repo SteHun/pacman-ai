@@ -277,6 +277,8 @@ class Enemy:
         self.initialize()
 
     def setup_vars(self):
+        self.is_elroy_now = False
+        self.is_second_elroy_now = False
         self.x_tile_middle, self.y_tile_middle = 3.5, 3.5
         self.direction = directions.up
         self.speed = 0.75 * 1.5
@@ -425,13 +427,29 @@ class Enemy:
                     self.is_in_house = False
                     self.is_exiting_house = False
             return
+
+        if self.elroy and self.game_object.player.amount_of_dots == self.dots_for_elroy and not self.is_elroy_now:
+            print("elroy mode active!")
+            self.is_elroy_now = True
+            self.mode = modes.chase
+            self.speed = self.first_elroy_speed
+        elif self.elroy and self.game_object.player.amount_of_dots == self.dots_for_second_elroy_speedup and not self.is_second_elroy_now:
+            print("second elroy mode active!")
+            self.is_second_elroy_now = True
+            self.speed = self.second_elroy_speed
+
         calculate_new_direction = self.move(self.speed, self.direction)
         if self.total_mode_switches < len(self.mode_switch_times) and self.game_object.clock == self.mode_switch_times[self.total_mode_switches][0]:
-            self.switch_direction()
             calculate_new_direction = True
-            self.mode = self.mode_switch_times[self.total_mode_switches][1]
+            if not self.is_elroy_now:
+                self.mode = self.mode_switch_times[self.total_mode_switches][1]
+                self.switch_direction()
+            else:
+                self.mode = modes.chase
             if self.mode == modes.scatter:  self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
             self.total_mode_switches += 1
+
+
 
         if calculate_new_direction:
             if self.x_tile_pos == -2:   self.x_tile_pos = 28
@@ -485,6 +503,11 @@ class Blinky(Enemy):
     def __init__(self, game_object):
         self.game_object = game_object
         self.scatter_target_x, self.scatter_target_y = 25, 2
+        self.elroy = True
+        self.dots_for_elroy = self.game_object.player.amount_of_dots - 10
+        self.dots_for_second_elroy_speedup = self.game_object.player.amount_of_dots - 20
+        self.first_elroy_speed = 0.80 * 1.5
+        self.second_elroy_speed = 0.85 * 1.5
         self.setup_vars()
         self.x_tile_pos, self.y_tile_pos = 14, 13
         self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
@@ -496,6 +519,7 @@ class Pinky(Enemy):
     def __init__(self, game_object):
         self.game_object = game_object
         self.scatter_target_x, self.scatter_target_y = 3, 2
+        self.elroy = False
         self.setup_vars()
         self.x_tile_pos, self.y_tile_pos = 14, 16
         self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
@@ -509,6 +533,7 @@ class Inky(Enemy):
     def __init__(self, game_object):
         self.game_object = game_object
         self.scatter_target_x, self.scatter_target_y = 3, 2
+        self.elroy = False
         self.setup_vars()
         self.x_tile_pos, self.y_tile_pos = 12, 16
         self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
@@ -522,6 +547,7 @@ class Clyde(Enemy):
     def __init__(self, game_object):
         self.game_object = game_object
         self.scatter_target_x, self.scatter_target_y = 3, 2
+        self.elroy = False
         self.setup_vars()
         self.x_tile_pos, self.y_tile_pos = 16, 16
         self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
