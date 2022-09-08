@@ -282,7 +282,9 @@ class Enemy:
         self.is_second_elroy_now = False
         self.x_tile_middle, self.y_tile_middle = 3.5, 3.5
         self.direction = directions.up
-        self.speed = 0.75 * 1.5
+        self.base_speed = 0.75 * 1.5
+        self.tunnel_speed = 0.40 * 1.5
+        self.speed = self.base_speed
         self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
         fps = self.game_object.fps
         self.is_frightened = False
@@ -441,12 +443,10 @@ class Enemy:
             return
 
         if self.elroy and not self.is_elroy_now and self.game_object.player.amount_of_dots == self.dots_for_elroy:
-            print("elroy mode active!")
             self.is_elroy_now = True
             self.mode = modes.chase
             self.speed = self.first_elroy_speed
         elif self.elroy and not self.is_second_elroy_now and self.game_object.player.amount_of_dots == self.dots_for_second_elroy_speedup:
-            print("second elroy mode active!")
             self.is_second_elroy_now = True
             self.speed = self.second_elroy_speed
 
@@ -457,11 +457,13 @@ class Enemy:
             elif self.x_tile_pos == 29: self.x_tile_pos = -1
             if self.mode == modes.chase:    self.target_x, self.target_y = self.get_chase_target()
             if self.y_tile_pos == 16 and (self.x_tile_pos in range(-1, 6) or self.x_tile_pos in range(22, 29)):
-                # change speed
+                self.speed = self.tunnel_speed
                 pass
             elif (self.y_tile_pos == 13 or self.y_tile_pos == 25) and self.x_tile_pos in range(10, 18):
+                self.speed = self.base_speed
                 self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y, restrict_up=True)
             else:
+                self.speed = self.base_speed
                 self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
             if self.next_direction != self.direction:
                 self.switch_at_next_intersection = True
