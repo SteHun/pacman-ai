@@ -557,15 +557,15 @@ class Inky(Enemy):
         player_direction = self.game_object.player.direction
         player_x_pos, player_y_pos = self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
         teammate_x_pos, teammate_y_pos = self.enemy_for_teamwork.x_tile_pos, self.enemy_for_teamwork.y_tile_pos
-        # if player_direction == directions.up:
-        #     player_x_pos -= 2
-        #     player_y_pos -= 2
-        # elif player_direction == directions.down:
-        #     player_y_pos += 2
-        # elif player_direction == directions.left:
-        #     player_x_pos -= 2
-        # else:
-        #     player_x_pos += 2
+        if player_direction == directions.up:
+            player_x_pos -= 2
+            player_y_pos -= 2
+        elif player_direction == directions.down:
+            player_y_pos += 2
+        elif player_direction == directions.left:
+            player_x_pos -= 2
+        else:
+            player_x_pos += 2
         return player_x_pos + (player_x_pos - teammate_x_pos), player_y_pos + (player_y_pos - teammate_y_pos)
 
 class Clyde(Enemy):
