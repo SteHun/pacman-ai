@@ -580,4 +580,9 @@ class Clyde(Enemy):
         self.dots_to_exit = self.game_object.player.amount_of_dots - 20
         self.initialize()
     def get_chase_target(self):
-        return self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
+        player_x_pos, player_y_pos = self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
+        own_x_pos, own_y_pos = self.x_tile_pos, self.y_tile_pos
+        if (player_x_pos - own_x_pos)**2 + (player_y_pos - own_y_pos)**2 >= 64:
+            return player_x_pos, player_y_pos
+        else:
+            return self.scatter_target_x, self.scatter_target_y
