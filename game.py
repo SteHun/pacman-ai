@@ -254,6 +254,16 @@ class Player:
         elif self.y_pos_in_tile != self.y_tile_middle and (self.direction == directions.up or self.direction == directions.down):
             self.center_up_down()
         
+        for enemy in self.game_object.enemies:
+            if self.x_tile_pos == enemy.x_tile_pos and self.y_tile_pos == enemy.y_tile_pos:
+                if enemy.is_scared:
+                    enemy.is_eaten = True
+                    enemy.has_been_eaten = True
+                elif enemy.is_eaten:
+                    continue
+                else:
+                    print("u ded")
+
         self.x_pos = self.x_tile_pos * self.game_object.tile_width_height + self.x_pos_in_tile
         self.y_pos = self.y_tile_pos * self.game_object.tile_width_height + self.y_pos_in_tile
 
@@ -284,6 +294,7 @@ class Enemy:
         self.initialize()
 
     def setup_vars(self):
+        self.is_eaten = False
         self.is_scared = False
         self.was_just_scared = False
         self.scared_timer = 0
@@ -295,6 +306,7 @@ class Enemy:
         self.base_speed = 0.75 * 1.5
         self.tunnel_speed = 0.40 * 1.5
         self.scared_speed = 0.50 * 1.5
+        self.eaten_speed = self.base_speed * 2
         self.speed = self.base_speed
         self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
         fps = self.game_object.fps
@@ -353,7 +365,7 @@ class Enemy:
     def get_next_move(self, maze_layout, x_pos, y_pos, target_x, target_y, restrict_up = False):
         options_for_moving = self.get_options_for_moving(maze_layout, x_pos, y_pos, restrict_up)
         if len(options_for_moving) == 1:    return options_for_moving[0]
-        if self.is_scared:  return options_for_moving[randint(0, len(options_for_moving) - 1)]
+        if self.is_scared and not self.is_eaten:    return options_for_moving[randint(0, len(options_for_moving) - 1)]
         target = (target_x, target_y)
         get_difference = lambda a, b: a - b if a >= b else b - a
         possible_positions = []
@@ -420,6 +432,7 @@ class Enemy:
         elif self.direction == directions.right: self.direction = directions.left
 
     def advance(self):
+        # mode switches
         if self.total_mode_switches < len(self.mode_switch_times) and self.game_object.clock == self.mode_switch_times[self.total_mode_switches][0]:
             mode_has_switched = True
             if not self.is_elroy_now:
@@ -431,6 +444,7 @@ class Enemy:
             self.total_mode_switches += 1
         else:
             mode_has_switched = False
+        # house exiting
         if self.is_in_house:
             if not self.is_exiting_house and self.game_object.player.amount_of_dots <= self.dots_to_exit:
                 self.is_exiting_house = True
@@ -454,6 +468,7 @@ class Enemy:
                     self.is_in_house = False
                     self.is_exiting_house = False
             return
+        # scared
         if self.is_scared:
             self.scared_timer -= 1
             if self.scared_timer <= 0:
@@ -465,18 +480,28 @@ class Enemy:
         elif self.elroy and not self.is_second_elroy_now and self.game_object.player.amount_of_dots == self.dots_for_second_elroy_speedup:
             self.is_second_elroy_now = True
             self.speed = self.second_elroy_speed
+        
+        if self.has_been_eaten:
+            self.target_x, self.target_y = self.house_exit_x_tile_pos - 1, self.house_exit_x_tile_pos - 1
+            self.has_been_eaten = False
+            self.is_scared = False
 
-        calculate_new_direction = self.move(self.speed if not self.is_scared else self.scared_speed, self.direction)
+        if self.is_eaten:
+            calculate_new_direction = self.move(self.eaten_speed, self.direction)
+        elif self.is_scared:  calculate_new_direction = self.move(self.scared_speed, self.direction)
+        else:   calculate_new_direction = self.move(self.speed, self.direction)
+        #calculate_new_direction = self.move(self.speed if not self.is_scared else self.scared_speed, self.direction)
 
         if calculate_new_direction or mode_has_switched or self.was_just_scared:
             self.was_just_scared = False
+            if self.is_eaten and self.x_tile_pos == self.house_exit_x_tile_pos - 1 and self.y_tile_pos == self.house_exit_y_tile_pos:
+                self.is_eaten = False
             if self.x_tile_pos == -2:   self.x_tile_pos = 28
             elif self.x_tile_pos == 29: self.x_tile_pos = -1
-            if self.mode == modes.chase:    self.target_x, self.target_y = self.get_chase_target()
+            if self.mode == modes.chase and not self.is_eaten:  self.target_x, self.target_y = self.get_chase_target()
             if self.y_tile_pos == 16 and (self.x_tile_pos in range(-1, 6) or self.x_tile_pos in range(22, 29)):
                 self.speed = self.tunnel_speed
-                pass
-            elif (self.y_tile_pos == 13 or self.y_tile_pos == 25) and self.x_tile_pos in range(10, 18):
+            elif not self.is_eaten and not self.is_scared and (self.y_tile_pos == 13 or self.y_tile_pos == 25) and self.x_tile_pos in range(10, 18):
                 self.speed = self.base_speed
                 self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y, restrict_up=True)
             else:
