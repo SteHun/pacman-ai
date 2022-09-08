@@ -104,7 +104,10 @@ class Window:
         #!ENEMY BLITTING UNFINISHED!#
         #!ENEMIES WILL NEVER BE SCARED/SCARED WHITE!#
         for enemy in self.game_object.enemies:
-            if type(enemy) == game.Blinky:
+            if enemy.is_scared:
+                if enemy.scared_timer <= 1.5 * self.game_object.fps:   self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.scared_white_rect)
+                else:   self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.scared_blue_rect)
+            elif type(enemy) == game.Blinky:
                 self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.blinky_rects[enemy.direction])
             elif type(enemy) == game.Pinky:
                 self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.pinky_rects[enemy.direction])

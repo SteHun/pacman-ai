@@ -1,4 +1,4 @@
-from random import uniform
+from random import uniform, randint
 
 class directions:
     up = 0
@@ -63,8 +63,14 @@ class Game:
         self.min_fruit_duration, self.max_fruit_duration = 9, 10
         # self.tile_to_remove = 1 # DEBUG CODE FOR DOTS
         self.game_has_ended = False
-        
-        
+
+    def scare_all_enemies(self):
+        for enemy in self.enemies:
+            if enemy.is_in_house:   continue
+            enemy.is_scared = True
+            enemy.was_just_scared = True
+            enemy.switch_direction()
+            enemy.scared_timer = enemy.scared_time
         
     def set_input(self, key):
         assert key <= 3, f"input number should be between 0 and 3, not {key}"
@@ -216,7 +222,7 @@ class Player:
                         self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
                         self.amount_of_dots -= 1
                         self.score += 50
-                        # TODO: add mechanism to give pacman power
+                        self.game_object.scare_all_enemies()
                     elif (self.x_tile_pos, self.y_tile_pos) == self.game_object.tile_to_left_of_fruit or (self.x_tile_pos, self.y_tile_pos) == self.game_object.tile_to_right_of_fruit:
                         if self.game_object.active_fruit == fruits.cherry:
                             self.score += 100
@@ -278,16 +284,21 @@ class Enemy:
         self.initialize()
 
     def setup_vars(self):
+        self.is_scared = False
+        self.was_just_scared = False
+        self.scared_timer = 0
+        self.scared_time = 6 * self.game_object.fps
         self.is_elroy_now = False
         self.is_second_elroy_now = False
         self.x_tile_middle, self.y_tile_middle = 3.5, 3.5
         self.direction = directions.up
         self.base_speed = 0.75 * 1.5
         self.tunnel_speed = 0.40 * 1.5
+        self.scared_speed = 0.50 * 1.5
         self.speed = self.base_speed
         self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
         fps = self.game_object.fps
-        self.is_frightened = False
+        self.is_scared = False
         self.has_been_eaten = False
         self.next_mode = None
         self.mode_switch_times = [
@@ -342,6 +353,7 @@ class Enemy:
     def get_next_move(self, maze_layout, x_pos, y_pos, target_x, target_y, restrict_up = False):
         options_for_moving = self.get_options_for_moving(maze_layout, x_pos, y_pos, restrict_up)
         if len(options_for_moving) == 1:    return options_for_moving[0]
+        if self.is_scared:  return options_for_moving[randint(0, len(options_for_moving) - 1)]
         target = (target_x, target_y)
         get_difference = lambda a, b: a - b if a >= b else b - a
         possible_positions = []
@@ -412,7 +424,7 @@ class Enemy:
             mode_has_switched = True
             if not self.is_elroy_now:
                 self.mode = self.mode_switch_times[self.total_mode_switches][1]
-                self.switch_direction()
+                if not self.is_scared:  self.switch_direction()
             else:
                 self.mode = modes.chase
             if self.mode == modes.scatter:  self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
@@ -430,7 +442,8 @@ class Enemy:
                     self.x_pos = self.house_exit_x_pos
                     self.direction = directions.up
             elif self.is_exiting_house:
-                self.move(self.speed, self.direction)
+                if not self.is_scared:
+                    self.move(self.speed, self.direction)
                 if self.direction != directions.up and (self.house_exit_x_pos - self.speed / 2 <= self.x_pos and self.house_exit_x_pos + self.speed / 2 >= self.x_pos):
                     self.direction = directions.up
                     self.x_pos = self.house_exit_x_pos
@@ -441,7 +454,10 @@ class Enemy:
                     self.is_in_house = False
                     self.is_exiting_house = False
             return
-
+        if self.is_scared:
+            self.scared_timer -= 1
+            if self.scared_timer <= 0:
+                self.is_scared = False
         if self.elroy and not self.is_elroy_now and self.game_object.player.amount_of_dots == self.dots_for_elroy:
             self.is_elroy_now = True
             self.mode = modes.chase
@@ -450,9 +466,10 @@ class Enemy:
             self.is_second_elroy_now = True
             self.speed = self.second_elroy_speed
 
-        calculate_new_direction = self.move(self.speed, self.direction)
+        calculate_new_direction = self.move(self.speed if not self.is_scared else self.scared_speed, self.direction)
 
-        if calculate_new_direction or mode_has_switched:
+        if calculate_new_direction or mode_has_switched or self.was_just_scared:
+            self.was_just_scared = False
             if self.x_tile_pos == -2:   self.x_tile_pos = 28
             elif self.x_tile_pos == 29: self.x_tile_pos = -1
             if self.mode == modes.chase:    self.target_x, self.target_y = self.get_chase_target()
@@ -579,7 +596,7 @@ class Clyde(Enemy):
         self.x_tile_pos, self.y_tile_pos = 16, 16
         self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
         self.is_in_house = True
-        self.dots_to_exit = self.game_object.player.amount_of_dots - 20
+        self.dots_to_exit = self.game_object.player.amount_of_dots - 30
         self.initialize()
     def get_chase_target(self):
         player_x_pos, player_y_pos = self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
