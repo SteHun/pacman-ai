@@ -571,7 +571,7 @@ class Inky(Enemy):
 class Clyde(Enemy):
     def __init__(self, game_object):
         self.game_object = game_object
-        self.scatter_target_x, self.scatter_target_y = 4, 2
+        self.scatter_target_x, self.scatter_target_y = 0, 34
         self.elroy = False
         self.setup_vars()
         self.x_tile_pos, self.y_tile_pos = 16, 16
