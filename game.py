@@ -431,48 +431,64 @@ class Enemy:
         elif self.direction == directions.left: self.direction = directions.right
         elif self.direction == directions.right: self.direction = directions.left
 
-    def advance(self):
-        # mode switches
-        if self.total_mode_switches < len(self.mode_switch_times) and self.game_object.clock == self.mode_switch_times[self.total_mode_switches][0]:
-            mode_has_switched = True
-            if not self.is_elroy_now:
-                self.mode = self.mode_switch_times[self.total_mode_switches][1]
-                if not self.is_scared:  self.switch_direction()
+    def switch_mode(self):
+        if not self.is_elroy_now:
+            self.mode = self.mode_switch_times[self.total_mode_switches][1]
+            if not self.is_scared:  self.switch_direction()
+        else:
+            self.mode = modes.chase
+        # TODO: this it a temporary fix and fixes the enemy getting stuck on their scatter target
+        # please make sure the enemy has the correct target when exiting the 'is_eaten' state
+        if self.mode == modes.scatter and not self.is_eaten:  self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
+        self.total_mode_switches += 1
+
+    def advance_when_in_house(self):
+        if not self.is_exiting_house and self.game_object.player.amount_of_dots <= self.dots_to_exit:
+            self.is_exiting_house = True
+            if self.x_pos + self.speed / 2 <= self.house_exit_x_pos:
+                self.direction = directions.right
+            elif self.x_pos - self.speed / 2 >= self.house_exit_x_pos:
+                self.direction = directions.left
             else:
-                self.mode = modes.chase
-            if self.mode == modes.scatter:  self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
-            self.total_mode_switches += 1
+                self.x_pos = self.house_exit_x_pos
+                self.direction = directions.up
+        elif self.is_exiting_house:
+            self.move(self.speed, self.direction)
+            if self.direction != directions.up and (self.house_exit_x_pos - self.speed / 2 <= self.x_pos and self.house_exit_x_pos + self.speed / 2 >= self.x_pos):
+                self.direction = directions.up
+                self.x_pos = self.house_exit_x_pos
+            elif self.direction == directions.up and (self.house_exit_y_pos + self.speed / 2 >= self.y_pos):
+                self.x_pos, self.y_pos = self.house_exit_x_pos, self.house_exit_y_pos
+                self.x_tile_pos, self.y_tile_pos = self.house_exit_x_tile_pos, self.house_exit_y_tile_pos
+                self.x_pos_in_tile, self.y_pos_in_tile = self.house_exit_x_pos_in_tile, self.house_exit_y_pos_in_tile
+                self.is_in_house = False
+                self.is_exiting_house = False
+
+    def advance(self):
+        # some variables are really confusing, so instead of fixing it, I'l explain it here!
+        # self.elroy: if this enemy can get the elroy boost
+        # self.is_elroy_now: if this enemy has an elroy boost right now
+        # self.is_second_elroy_now: if this enemy has the second elroy boost right now
+        # self.has_been_eaten: the enemy has been eaten and should manage some things (only true for 1 frame)
+        # self.is_eaten: if the enemy is currently in the 'eaten' state (true for every frame)
+
+
+        # switch mode from scatter to chase or back
+        if self.total_mode_switches < len(self.mode_switch_times) and self.game_object.clock == self.mode_switch_times[self.total_mode_switches][0]:
+            self.switch_mode()
+            mode_has_switched = True
         else:
             mode_has_switched = False
-        # house exiting
+        # house management
         if self.is_in_house:
-            if not self.is_exiting_house and self.game_object.player.amount_of_dots <= self.dots_to_exit:
-                self.is_exiting_house = True
-                if self.x_pos + self.speed / 2 <= self.house_exit_x_pos:
-                    self.direction = directions.right
-                elif self.x_pos - self.speed / 2 >= self.house_exit_x_pos:
-                    self.direction = directions.left
-                else:
-                    self.x_pos = self.house_exit_x_pos
-                    self.direction = directions.up
-            elif self.is_exiting_house:
-                if not self.is_scared:
-                    self.move(self.speed, self.direction)
-                if self.direction != directions.up and (self.house_exit_x_pos - self.speed / 2 <= self.x_pos and self.house_exit_x_pos + self.speed / 2 >= self.x_pos):
-                    self.direction = directions.up
-                    self.x_pos = self.house_exit_x_pos
-                elif self.direction == directions.up and (self.house_exit_y_pos + self.speed / 2 >= self.y_pos):
-                    self.x_pos, self.y_pos = self.house_exit_x_pos, self.house_exit_y_pos
-                    self.x_tile_pos, self.y_tile_pos = self.house_exit_x_tile_pos, self.house_exit_y_tile_pos
-                    self.x_pos_in_tile, self.y_pos_in_tile = self.house_exit_x_pos_in_tile, self.house_exit_y_pos_in_tile
-                    self.is_in_house = False
-                    self.is_exiting_house = False
+            self.advance_when_in_house()
             return
-        # scared
+        # manage scared timer
         if self.is_scared:
             self.scared_timer -= 1
             if self.scared_timer <= 0:
                 self.is_scared = False
+        # manage the elroy boost
         if self.elroy and not self.is_elroy_now and self.game_object.player.amount_of_dots == self.dots_for_elroy:
             self.is_elroy_now = True
             self.mode = modes.chase
@@ -480,18 +496,16 @@ class Enemy:
         elif self.elroy and not self.is_second_elroy_now and self.game_object.player.amount_of_dots == self.dots_for_second_elroy_speedup:
             self.is_second_elroy_now = True
             self.speed = self.second_elroy_speed
-        
+        # run some code if the enemy has been eaten last frame (only runs one frame)
         if self.has_been_eaten:
             self.target_x, self.target_y = self.house_exit_x_tile_pos - 1, self.house_exit_x_tile_pos - 1
             self.has_been_eaten = False
             self.is_scared = False
-
-        if self.is_eaten:
-            calculate_new_direction = self.move(self.eaten_speed, self.direction)
+        # move at the apropriate speed
+        if self.is_eaten:   calculate_new_direction = self.move(self.eaten_speed, self.direction)
         elif self.is_scared:  calculate_new_direction = self.move(self.scared_speed, self.direction)
         else:   calculate_new_direction = self.move(self.speed, self.direction)
-        #calculate_new_direction = self.move(self.speed if not self.is_scared else self.scared_speed, self.direction)
-
+        # TODO: this is a total MESS! please clean it up
         if calculate_new_direction or mode_has_switched or self.was_just_scared:
             self.was_just_scared = False
             if self.is_eaten and self.x_tile_pos == self.house_exit_x_tile_pos - 1 and self.y_tile_pos == self.house_exit_y_tile_pos:
