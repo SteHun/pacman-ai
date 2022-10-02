@@ -434,11 +434,9 @@ class Enemy:
     def switch_mode(self):
         if not self.is_elroy_now:
             self.mode = self.mode_switch_times[self.total_mode_switches][1]
-            if not self.is_scared:  self.switch_direction()
+            if not (self.is_scared or self.is_eaten):   self.switch_direction()
         else:
             self.mode = modes.chase
-        # TODO: this it a temporary fix and fixes the enemy getting stuck on their scatter target
-        # please make sure the enemy has the correct target when exiting the 'is_eaten' state
         if self.mode == modes.scatter and not self.is_eaten:  self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
         self.total_mode_switches += 1
 
@@ -468,6 +466,7 @@ class Enemy:
         # check if enemy is in front of the house
         if self.is_eaten and self.x_tile_pos == self.house_exit_x_tile_pos - 1 and self.y_tile_pos == self.house_exit_y_tile_pos:
             self.is_eaten = False
+            if self.mode == modes.scatter:   self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
         # wrap around the screen
         if self.x_tile_pos == -2:   self.x_tile_pos = 28
         elif self.x_tile_pos == 29: self.x_tile_pos = -1
@@ -527,7 +526,7 @@ class Enemy:
         if self.is_eaten:   calculate_new_direction = self.move(self.eaten_speed, self.direction)
         elif self.is_scared:  calculate_new_direction = self.move(self.scared_speed, self.direction)
         else:   calculate_new_direction = self.move(self.speed, self.direction)
-        # TODO: this is a total MESS! please clean it up
+        
         if self.was_just_scared:
             self.was_just_scared = False
             calculate_new_direction = True
