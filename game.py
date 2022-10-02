@@ -463,6 +463,28 @@ class Enemy:
                 self.x_pos_in_tile, self.y_pos_in_tile = self.house_exit_x_pos_in_tile, self.house_exit_y_pos_in_tile
                 self.is_in_house = False
                 self.is_exiting_house = False
+        
+    def advance_per_tile(self):
+        # check if enemy is in front of the house
+        if self.is_eaten and self.x_tile_pos == self.house_exit_x_tile_pos - 1 and self.y_tile_pos == self.house_exit_y_tile_pos:
+            self.is_eaten = False
+        # wrap around the screen
+        if self.x_tile_pos == -2:   self.x_tile_pos = 28
+        elif self.x_tile_pos == 29: self.x_tile_pos = -1
+
+        if self.mode == modes.chase and not self.is_eaten:  self.target_x, self.target_y = self.get_chase_target()
+        # make enemies slower in the tunnel
+        # TODO: make speed into constants for more predictable code
+        if self.y_tile_pos == 16 and (self.x_tile_pos in range(-1, 6) or self.x_tile_pos in range(22, 29)):
+            self.speed = self.tunnel_speed
+        elif not self.is_eaten and not self.is_scared and (self.y_tile_pos == 13 or self.y_tile_pos == 25) and self.x_tile_pos in range(10, 18):
+            self.speed = self.base_speed
+            self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y, restrict_up=True)
+        else:
+            self.speed = self.base_speed
+            self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
+        if self.next_direction != self.direction:
+            self.switch_at_next_intersection = True
 
     def advance(self):
         # some variables are really confusing, so instead of fixing it, I'l explain it here!
@@ -506,23 +528,11 @@ class Enemy:
         elif self.is_scared:  calculate_new_direction = self.move(self.scared_speed, self.direction)
         else:   calculate_new_direction = self.move(self.speed, self.direction)
         # TODO: this is a total MESS! please clean it up
-        if calculate_new_direction or mode_has_switched or self.was_just_scared:
+        if self.was_just_scared:
             self.was_just_scared = False
-            if self.is_eaten and self.x_tile_pos == self.house_exit_x_tile_pos - 1 and self.y_tile_pos == self.house_exit_y_tile_pos:
-                self.is_eaten = False
-            if self.x_tile_pos == -2:   self.x_tile_pos = 28
-            elif self.x_tile_pos == 29: self.x_tile_pos = -1
-            if self.mode == modes.chase and not self.is_eaten:  self.target_x, self.target_y = self.get_chase_target()
-            if self.y_tile_pos == 16 and (self.x_tile_pos in range(-1, 6) or self.x_tile_pos in range(22, 29)):
-                self.speed = self.tunnel_speed
-            elif not self.is_eaten and not self.is_scared and (self.y_tile_pos == 13 or self.y_tile_pos == 25) and self.x_tile_pos in range(10, 18):
-                self.speed = self.base_speed
-                self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y, restrict_up=True)
-            else:
-                self.speed = self.base_speed
-                self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
-            if self.next_direction != self.direction:
-                self.switch_at_next_intersection = True
+            calculate_new_direction = True
+        if calculate_new_direction or mode_has_switched:
+            self.advance_per_tile()
         if self.switch_at_next_intersection:
             if self.direction == directions.up and self.y_pos_in_tile <= self.y_tile_middle:
                 self.y_pos_in_tile = self.y_tile_middle
@@ -533,7 +543,7 @@ class Enemy:
                 self.direction = self.next_direction
                 self.switch_at_next_intersection = False
             elif self.direction == directions.left and self.x_pos_in_tile <= self.x_tile_middle:
-                self.y_pos_in_tile = self.y_tile_middle
+                self.x_pos_in_tile = self.x_tile_middle
                 self.direction = self.next_direction
                 self.switch_at_next_intersection = False
             elif self.direction == directions.right and self.x_pos_in_tile >= self.x_tile_middle:
