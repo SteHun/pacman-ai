@@ -297,7 +297,7 @@ class Enemy:
         self.is_eaten = False
         self.is_scared = False
         self.was_just_scared = False
-        self.is_regenerating = False
+        self.is_entering_house = False
         self.scared_timer = 0
         self.scared_time = 6 * self.game_object.fps
         self.is_elroy_now = False
@@ -343,6 +343,7 @@ class Enemy:
         self.initial_x_pos_in_tile, self.initial_y_pos_in_tile = self.x_pos_in_tile, self.y_pos_in_tile
 
         self.x_pos, self.y_pos = 8 * self.x_tile_pos + self.x_pos_in_tile, 8 * self.y_tile_pos + self.y_pos_in_tile
+        self.initial_x_pos, self.initial_y_pos = self.x_pos, 8 * 16 + self.y_pos_in_tile
         self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
         self.direction = self.next_direction
         # self.max_x_pos, self.max_y_pos = self.x_pos + 20, self.y_pos + 20 # DEBUG CODE
@@ -465,18 +466,38 @@ class Enemy:
                 self.x_pos_in_tile, self.y_pos_in_tile = self.house_exit_x_pos_in_tile, self.house_exit_y_pos_in_tile
                 self.is_in_house = False
                 self.is_exiting_house = False
+    
+    def advance_when_entering_house(self):
+        if self.y_pos < self.initial_y_pos:
+            if self.y_pos + self.speed >= self.initial_y_pos:
+                self.y_pos = self.initial_y_pos
+            else:
+                self.move(self.speed, directions.down)
+        elif self.x_pos != self.initial_x_pos:
+            if (self.x_pos > self.initial_x_pos and self.x_pos - self.speed <= self.initial_x_pos) or (self.x_pos < self.initial_x_pos and self.x_pos + self.speed >= self.initial_x_pos):
+                self.x_pos = self.initial_x_pos
+            elif self.x_pos > self.initial_x_pos:
+                self.move(self.speed, directions.left)
+            elif self.x_pos < self.initial_x_pos:
+                self.move(self.speed, directions.right)
+        else:
+            self.is_in_house = True
+            self.is_entering_house = False
+            #self.x_tile_pos, self.y_tile_pos = self.initial_x_tile_pos, self.initial_y_tile_pos
+            #self.x_pos_in_tile, self.y_pos_in_tile = self.initial_x_pos_in_tile, self.initial_y_pos_in_tile
         
     def advance_per_tile(self):
         # check if enemy is in front of the house
         if self.is_eaten and self.x_tile_pos == self.house_exit_x_tile_pos - 1 and self.y_tile_pos == self.house_exit_y_tile_pos:
             # add stuff here
-            self.is_regenerating = True # this var may not be needed
+            self.is_entering_house = True # this var may not be needed
             self.x_tile_pos, self.y_tile_pos = self.initial_x_tile_pos, self.initial_y_tile_pos
             self.x_pos_in_tile, self.y_pos_in_tile = self.initial_x_pos_in_tile, self.initial_y_pos_in_tile
-            self.x_pos, self.y_pos = 8 * self.x_tile_pos + self.x_pos_in_tile, 8 * self.y_tile_pos + self.y_pos_in_tile
-            self.is_in_house = True
+            #self.x_pos, self.y_pos = 8 * self.x_tile_pos + self.x_pos_in_tile, 8 * self.y_tile_pos + self.y_pos_in_tile
+            # self.is_in_house = True
             self.is_eaten = False
             if self.mode == modes.scatter:   self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
+            return
         # wrap around the screen
         if self.x_tile_pos == -2:   self.x_tile_pos = 28
         elif self.x_tile_pos == 29: self.x_tile_pos = -1
@@ -510,6 +531,10 @@ class Enemy:
             mode_has_switched = True
         else:
             mode_has_switched = False
+        # house entering management
+        if self.is_entering_house:
+            self.advance_when_entering_house()
+            return
         # house management
         if self.is_in_house:
             self.advance_when_in_house()
@@ -559,9 +584,9 @@ class Enemy:
                 self.x_pos_in_tile = self.x_tile_middle
                 self.direction = self.next_direction
                 self.switch_at_next_intersection = False
-
-        self.x_pos = self.x_tile_pos * self.game_object.tile_width_height + self.x_pos_in_tile
-        self.y_pos = self.y_tile_pos * self.game_object.tile_width_height + self.y_pos_in_tile
+        if not self.is_entering_house:
+            self.x_pos = self.x_tile_pos * self.game_object.tile_width_height + self.x_pos_in_tile
+            self.y_pos = self.y_tile_pos * self.game_object.tile_width_height + self.y_pos_in_tile
         # if self.is_going_down_right:
         #     if self.x_pos + self.x_movement >= self.max_x_pos or self.y_pos + self.y_movement >= self.max_y_pos:
         #         self.is_going_down_right = False
