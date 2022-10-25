@@ -61,6 +61,7 @@ class Game:
         self.fruits_have_been_eaten = False
         self.min_fruit_duration, self.max_fruit_duration = 9, 10
         self.game_has_ended = False
+        self.player_died = False
 
     def scare_all_enemies(self):
         for enemy in self.enemies:
@@ -74,7 +75,7 @@ class Game:
         assert key <= 3, f"input number should be between 0 and 3, not {key}"
         self.input = key
     def advance(self):
-        if self.game_has_ended: return
+        if self.game_has_ended or self.player_died: return
         self.clock += 1
 
         self.player.advance()
@@ -248,7 +249,7 @@ class Player:
                 elif enemy.is_eaten:
                     continue
                 else:
-                    print("u ded")
+                    self.game_object.player_died = True
 
         self.x_pos = self.x_tile_pos * self.game_object.tile_width_height + self.x_pos_in_tile
         self.y_pos = self.y_tile_pos * self.game_object.tile_width_height + self.y_pos_in_tile
