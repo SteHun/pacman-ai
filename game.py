@@ -51,7 +51,6 @@ class Game:
         self.tile_to_left_of_fruit = (13,19)
         self.tile_to_right_of_fruit = (self.tile_to_left_of_fruit[0] + 1, self.tile_to_left_of_fruit[1])
         self.clock = 0
-        #self.maze = [[maze.dot]*self.maze_width_in_tiles for _ in range(self.maze_height_in_tiles)] #create maze structure later
         self.input = directions.left
         self.player = Player(self)
         self.enemies = (Blinky(self), Pinky(self), Inky(self), Clyde(self))
@@ -61,7 +60,6 @@ class Game:
         self.fruit_apprearances = [self.player.amount_of_dots - 70, self.player.amount_of_dots - 170]
         self.fruits_have_been_eaten = False
         self.min_fruit_duration, self.max_fruit_duration = 9, 10
-        # self.tile_to_remove = 1 # DEBUG CODE FOR DOTS
         self.game_has_ended = False
 
     def scare_all_enemies(self):
@@ -93,14 +91,6 @@ class Game:
         for enemy in self.enemies:
             enemy.advance()
         
-        # if self.clock % self.fps == 0:
-            # DEBUG CODE FOR DOTS
-            # self.maze[3][self.tile_to_remove] = maze.empty
-            # if self.tile_to_remove < 26: self.tile_to_remove += 1
-
-            # for entity in self.enemies:# + (self.player,):
-            #     entity.direction = self.clock // self.fps % 4
-            # self.active_fruit = self.active_fruit + 1 if self.active_fruit < fruits.key else fruits.none
 
 class Player:
     def __init__(self, game_object):
@@ -131,10 +121,6 @@ class Player:
         self.dont_move_next_frame = False
 
         self.direction = directions.up
-        # DEBUG CODE
-        # self.x_movement = 2
-        # self.y_movement = 2
-        # self.is_going_down_right = True
     
     
     def move(self, speed, direction):
@@ -268,22 +254,6 @@ class Player:
         self.y_pos = self.y_tile_pos * self.game_object.tile_width_height + self.y_pos_in_tile
 
 
-        #elif 
-
-        # if self.is_going_down_right:
-        #     if self.x_pos + self.x_movement >= self.max_x_pos or self.y_pos + self.y_movement >= self.max_y_pos:
-        #         self.is_going_down_right = False
-        #         self.advance()
-        #         return
-        #     self.x_pos += self.x_movement
-        #     self.y_pos += self.y_movement
-        # else:
-        #     if self.x_pos - self.x_movement <= self.min_x_pos or self.y_pos - self.y_movement <= self.min_y_pos:
-        #         self.is_going_down_right = True
-        #         self.advance()
-        #         return
-        #     self.x_pos -= self.x_movement
-        #     self.y_pos -= self.y_movement
 
 class Enemy:
     def __init__(self, game_object):
@@ -323,7 +293,6 @@ class Enemy:
             (20 * fps, modes.scatter),
             (5 * fps, modes.chase)
             ]
-        #self.mode_switch_times = [self.mode_switch_times[0]] + [(self.mode_switch_times[i][0] + self.mode_switch_times[i - 1][0], self.mode_switch_times[i][1]) for i in range(1, len(self.mode_switch_times))]
         time_to_add = 0
         for index, item in enumerate(self.mode_switch_times):
             self.mode_switch_times[index] = (item[0] + time_to_add, item[1])
@@ -346,16 +315,11 @@ class Enemy:
         self.initial_x_pos, self.initial_y_pos = self.x_pos, 8 * 16 + self.y_pos_in_tile
         self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
         self.direction = self.next_direction
-        # self.max_x_pos, self.max_y_pos = self.x_pos + 20, self.y_pos + 20 # DEBUG CODE
-        # self.min_x_pos, self.min_y_pos = self.x_pos - 20, self.y_pos - 20 # DEBUG CODE
-        # self.x_movement, self.y_movement = 2, 2 # DEBUG CODE
-        # self.is_going_down_right = True # DEBUG CODE
     def get_chase_target(self): return self.scatter_target_x, self.scatter_target_y
 
     def get_options_for_moving(self, maze_layout, x_pos, y_pos, restrict_up):
-        #options_for_moving = [False for i in range(4)]
         options_for_moving = []
-        if x_pos <= 0:# or x_pos >= len(maze_layout[0]) - 1:
+        if x_pos <= 0:
             options_for_moving = [directions.left]
         elif x_pos >= len(maze_layout[0]) - 1:
             options_for_moving = [directions.right]
@@ -483,18 +447,14 @@ class Enemy:
         else:
             self.is_in_house = True
             self.is_entering_house = False
-            #self.x_tile_pos, self.y_tile_pos = self.initial_x_tile_pos, self.initial_y_tile_pos
-            #self.x_pos_in_tile, self.y_pos_in_tile = self.initial_x_pos_in_tile, self.initial_y_pos_in_tile
         
     def advance_per_tile(self):
         # check if enemy is in front of the house
         if self.is_eaten and self.x_tile_pos == self.house_exit_x_tile_pos - 1 and self.y_tile_pos == self.house_exit_y_tile_pos:
             # add stuff here
-            self.is_entering_house = True # this var may not be needed
+            self.is_entering_house = True 
             self.x_tile_pos, self.y_tile_pos = self.initial_x_tile_pos, self.initial_y_tile_pos
             self.x_pos_in_tile, self.y_pos_in_tile = self.initial_x_pos_in_tile, self.initial_y_pos_in_tile
-            #self.x_pos, self.y_pos = 8 * self.x_tile_pos + self.x_pos_in_tile, 8 * self.y_tile_pos + self.y_pos_in_tile
-            # self.is_in_house = True
             self.is_eaten = False
             if self.mode == modes.scatter:   self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
             return
@@ -504,7 +464,7 @@ class Enemy:
 
         if self.mode == modes.chase and not self.is_eaten:  self.target_x, self.target_y = self.get_chase_target()
         # make enemies slower in the tunnel
-        # TODO: make speed into constants for more predictable code
+        # TODO: make speed into constants for more predictable code (i'l never do this lol)
         if self.y_tile_pos == 16 and (self.x_tile_pos in range(-1, 6) or self.x_tile_pos in range(22, 29)):
             self.speed = self.tunnel_speed
         elif not self.is_eaten and not self.is_scared and (self.y_tile_pos == 13 or self.y_tile_pos == 25) and self.x_tile_pos in range(10, 18):
@@ -587,20 +547,6 @@ class Enemy:
         if not self.is_entering_house:
             self.x_pos = self.x_tile_pos * self.game_object.tile_width_height + self.x_pos_in_tile
             self.y_pos = self.y_tile_pos * self.game_object.tile_width_height + self.y_pos_in_tile
-        # if self.is_going_down_right:
-        #     if self.x_pos + self.x_movement >= self.max_x_pos or self.y_pos + self.y_movement >= self.max_y_pos:
-        #         self.is_going_down_right = False
-        #         self.advance()
-        #         return
-        #     self.x_pos += self.x_movement
-        #     self.y_pos += self.y_movement
-        # else:
-        #     if self.x_pos - self.x_movement <= self.min_x_pos or self.y_pos - self.y_movement <= self.min_y_pos:
-        #         self.is_going_down_right = True
-        #         self.advance()
-        #         return
-        #     self.x_pos -= self.x_movement
-        #     self.y_pos -= self.y_movement
     
 class Blinky(Enemy):
     def __init__(self, game_object):

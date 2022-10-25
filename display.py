@@ -99,10 +99,7 @@ class Window:
         self.screen.blit(self.player_sprites[self.game_object.player.direction], self.scale_position(self.game_object.player.x_pos, self.game_object.player.y_pos))
 
         if self.game_object.active_fruit != game.fruits.none:
-            # self.blit_sprite_by_tile(self.screen, self.fruit_sheet, self.game_object.tile_to_left_of_fruit, area=self.fruit_rects[self.game_object.active_fruit])
             self.screen.blit(self.fruit_sheet, self.fruit_position, area=self.fruit_rects[self.game_object.active_fruit])
-        #!ENEMY BLITTING UNFINISHED!#
-        #!ENEMIES WILL NEVER BE SCARED/SCARED WHITE!#
         for enemy in self.game_object.enemies:
             if enemy.is_eaten:
                 self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.scared_white_rect)
@@ -135,17 +132,3 @@ class Window:
         center = tuple([i * self.tile_width_height + self.tile_width_height / 2 for i in position])
         return tuple([i - self.sprite_width_height / 2 for i in center])
     
-
-
-
-#:ADD THIS STUFF TO DEBUG GRAPHICS:#
-# self.screen.blit(self.test_ball, self.test_ball_rect)
-# self.screen.blit(self.player_sprites[0], (20, 20))
-# self.screen.blit(self.player_sprites[1], (20, 50))
-# self.screen.blit(self.player_sprites[2], (20, 80))
-# self.screen.blit(self.player_sprites[3], (20, 110))
-# for enemy_index, enemy in enumerate((self.blinky_rects, self.pinky_rects, self.inky_rects, self.clyde_rects)):
-#     for rect_index, rect in enumerate(enemy):
-#         self.screen.blit(self.enemy_sheet, (50*enemy_index+50, 30*rect_index+20), area=rect)
-#self.screen.blit(self.enemy_sheet, (250, 20), area=self.scared_blue_rect)
-#self.screen.blit(self.enemy_sheet, (250, 50), area=self.scared_white_rect)
