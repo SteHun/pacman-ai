@@ -297,6 +297,7 @@ class Enemy:
         self.is_eaten = False
         self.is_scared = False
         self.was_just_scared = False
+        self.is_regenerating = False
         self.scared_timer = 0
         self.scared_time = 6 * self.game_object.fps
         self.is_elroy_now = False
@@ -338,6 +339,9 @@ class Enemy:
 
 
     def initialize(self):
+        self.initial_x_tile_pos, self.initial_y_tile_pos = self.x_tile_pos, 16 # im so sorry...(needed some way to make initial_y_tile_pos align with the hous even in the case of Blinky)
+        self.initial_x_pos_in_tile, self.initial_y_pos_in_tile = self.x_pos_in_tile, self.y_pos_in_tile
+
         self.x_pos, self.y_pos = 8 * self.x_tile_pos + self.x_pos_in_tile, 8 * self.y_tile_pos + self.y_pos_in_tile
         self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
         self.direction = self.next_direction
@@ -465,6 +469,12 @@ class Enemy:
     def advance_per_tile(self):
         # check if enemy is in front of the house
         if self.is_eaten and self.x_tile_pos == self.house_exit_x_tile_pos - 1 and self.y_tile_pos == self.house_exit_y_tile_pos:
+            # add stuff here
+            self.is_regenerating = True # this var may not be needed
+            self.x_tile_pos, self.y_tile_pos = self.initial_x_tile_pos, self.initial_y_tile_pos
+            self.x_pos_in_tile, self.y_pos_in_tile = self.initial_x_pos_in_tile, self.initial_y_pos_in_tile
+            self.x_pos, self.y_pos = 8 * self.x_tile_pos + self.x_pos_in_tile, 8 * self.y_tile_pos + self.y_pos_in_tile
+            self.is_in_house = True
             self.is_eaten = False
             if self.mode == modes.scatter:   self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
         # wrap around the screen
@@ -579,6 +589,7 @@ class Blinky(Enemy):
         self.setup_vars()
         self.x_tile_pos, self.y_tile_pos = 14, 13
         self.x_pos_in_tile, self.y_pos_in_tile = 0, self.y_tile_middle
+        self.dots_to_exit = self.game_object.player.amount_of_dots - 0
         self.initialize()
     def get_chase_target(self):
         return self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
