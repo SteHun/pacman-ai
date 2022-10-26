@@ -244,8 +244,14 @@ class Player:
         for enemy in self.game_object.enemies:
             if self.x_tile_pos == enemy.x_tile_pos and self.y_tile_pos == enemy.y_tile_pos:
                 if enemy.is_scared:
+                    # FINAL TODO THING: make combo system. After getting a power pellet set some counter to 0
+                    # 1st enemy: + 200 points
+                    # 2d enemy: + 400
+                    # 3d enemy: + 800
+                    # 4th enemy: + 1600
                     enemy.is_eaten = True
                     enemy.has_been_eaten = True
+                    self.score += 500 # replace with combo system
                 elif enemy.is_eaten:
                     continue
                 else:
