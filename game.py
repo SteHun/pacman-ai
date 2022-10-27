@@ -98,6 +98,8 @@ class Player:
         self.game_object = game_object
 
         self.score = 0
+        self.enemy_consumption_bonus = 0
+        self.enemy_consumption_scores = [200, 400, 800, 1600]
 
         self.speed = 1.5 * 0.80 #This is the speed for level 1!
         
@@ -209,6 +211,7 @@ class Player:
                         self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
                         self.amount_of_dots -= 1
                         self.score += 50
+                        self.enemy_consumption_bonus = 0
                         self.game_object.scare_all_enemies()
                     elif (self.x_tile_pos, self.y_tile_pos) == self.game_object.tile_to_left_of_fruit or (self.x_tile_pos, self.y_tile_pos) == self.game_object.tile_to_right_of_fruit:
                         if self.game_object.active_fruit == fruits.cherry:
@@ -251,7 +254,11 @@ class Player:
                     # 4th enemy: + 1600
                     enemy.is_eaten = True
                     enemy.has_been_eaten = True
-                    self.score += 500 # replace with combo system
+                    try:
+                        self.score += self.enemy_consumption_scores[self.enemy_consumption_bonus]
+                        self.enemy_consumption_bonus += 1
+                    except IndexError:
+                        self.score += self.enemy_consumption_scores[-1]
                 elif enemy.is_eaten:
                     continue
                 else:
