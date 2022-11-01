@@ -2,6 +2,7 @@ import display
 import game
 from sys import exit
 from time import time, sleep
+from multiprocessing import Pool
 
 import neat
 import os
@@ -81,8 +82,11 @@ def calculate_fitness(score, time, dots_left, finished_level):
         return score - dots_left
 
 def eval_genomes(genomes, config):
-    for (genome_id, genome) in genomes:
-        genome.fitness = play_game(genome, config)
+    with Pool() as p:
+        #print([(genome, config) for genome in genomes])
+        fitnesses = p.starmap(play_game, [(genome[1], config) for genome in genomes])
+        for i, fitness in enumerate(fitnesses):
+            genomes[i][1].fitness = fitness
 
 
 def train_neat(config):
