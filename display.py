@@ -131,4 +131,7 @@ class Window:
     def get_fruit_position(self, position):
         center = tuple([i * self.tile_width_height + self.tile_width_height / 2 for i in position])
         return tuple([i - self.sprite_width_height / 2 for i in center])
-    
+
+    def close_window(self):
+        pygame.display.quit()
+        pygame.quit()
