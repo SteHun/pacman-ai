@@ -3,6 +3,7 @@ import game
 from sys import exit
 from time import time, sleep
 from multiprocessing import Pool
+import pickle
 
 import neat
 import os
@@ -10,7 +11,6 @@ import os
 MAX_TIME = 10800
 SCORE_WEIGHT = 5
 TIME_WEIGHT_PER_SECOND = 50
-LOSS_PENALTY = 5
 # if __name__ == "__main__":
 #     frame_duration = 1/60
 #     game_instance = game.Game()
@@ -30,7 +30,7 @@ def get_state(enemy):
 
 def play_game(genome, config, show_visuals=False):
     frame_duration = 1/60
-    fitness = 1000
+    #fitness = 1000
     timer = 0
     game_instance = game.Game()
     net = neat.nn.FeedForwardNetwork.create(genome, config)
@@ -59,11 +59,6 @@ def play_game(genome, config, show_visuals=False):
         game_instance.advance()
         timer += 1
 
-        # fitness stuff
-        if timer - (5 * 60) >= time_of_last_dot:
-            time_of_last_dot = timer
-            fitness -= 50
-
         if timer > MAX_TIME:    break
 
         if show_visuals:
@@ -71,15 +66,15 @@ def play_game(genome, config, show_visuals=False):
             window_instance.refresh()
             sleep(max(0, frame_duration - (time() - start_time)))
     if show_visuals:    window_instance.close_window()
-    fitness += calculate_fitness(game_instance.player.score, timer, game_instance.player.amount_of_dots, game_instance.game_has_ended)
-    return fitness
-    #return calculate_fitness(game_instance.player.score, timer, game_instance.player.amount_of_dots, game_instance.game_has_ended)
+    # fitness += calculate_fitness(game_instance.player.score, timer, game_instance.player.amount_of_dots, game_instance.game_has_ended)
+    # return fitness
+    return calculate_fitness(game_instance.player.score, timer, game_instance.player.amount_of_dots, game_instance.game_has_ended)
 
 def calculate_fitness(score, time, dots_left, finished_level):
     if finished_level:
         return score * SCORE_WEIGHT - (time/60) * TIME_WEIGHT_PER_SECOND
     else:
-        return score - dots_left
+        return 500 - dots_left
 
 def eval_genomes(genomes, config):
     with Pool() as p:
@@ -92,13 +87,15 @@ def eval_genomes(genomes, config):
 def train_neat(config):
     # p = neat.Checkpointer.restore_checkpoint(filename)
     p = neat.Population(config)
-    p.add_reporter(neat.StdOutReporter(True))
+    # p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(5))
+    p.add_reporter(neat.Checkpointer(100))
 
-    winner = p.run(eval_genomes, 100)
+    winner = p.run(eval_genomes, 2000)
     play_game(winner, config, show_visuals=True)
+    with open("winner.neat", "wb") as file:
+        file.write(pickle.dumps(winner))
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
