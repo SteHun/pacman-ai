@@ -77,23 +77,24 @@ def calculate_fitness(score, time, dots_left, finished_level):
         return 500 - dots_left
 
 def eval_genomes(genomes, config):
-    with Pool() as p:
-        #print([(genome, config) for genome in genomes])
-        fitnesses = p.starmap(play_game, [(genome[1], config) for genome in genomes])
-        for i, fitness in enumerate(fitnesses):
-            genomes[i][1].fitness = fitness
+    #print([(genome, config) for genome in genomes])
+    # sorry for this :(
+    global pool
+    fitnesses = pool.starmap(play_game, [(genome[1], config) for genome in genomes])
+    for i, fitness in enumerate(fitnesses):
+        genomes[i][1].fitness = fitness
 
 
 def train_neat(config):
-    # p = neat.Checkpointer.restore_checkpoint(filename)
+    # p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-10299")
     p = neat.Population(config)
     # p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(100))
 
-    winner = p.run(eval_genomes, 2000)
-    play_game(winner, config, show_visuals=True)
+    winner = p.run(eval_genomes, 500)
+    # play_game(winner, config, show_visuals=True)
     with open("winner.neat", "wb") as file:
         file.write(pickle.dumps(winner))
 
@@ -104,4 +105,10 @@ if __name__ == "__main__":
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
-    train_neat(config)
+    pool = Pool()
+    try:
+        train_neat(config)
+        pool.terminate()
+    except:
+        pool.terminate()
+        raise
