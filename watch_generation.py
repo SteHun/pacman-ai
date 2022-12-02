@@ -68,6 +68,7 @@ def play_game(genome, config, show_visuals=False):
     if show_visuals:    window_instance.close_window()
     # fitness += calculate_fitness(game_instance.player.score, timer, game_instance.player.amount_of_dots, game_instance.game_has_ended)
     # return fitness
+    print(calculate_fitness(game_instance.player.score, timer, game_instance.player.amount_of_dots, game_instance.game_has_ended))
     return calculate_fitness(game_instance.player.score, timer, game_instance.player.amount_of_dots, game_instance.game_has_ended)
 
 def calculate_fitness(score, time, dots_left, finished_level):
@@ -80,18 +81,22 @@ def eval_genomes(genomes, config):
     #print([(genome, config) for genome in genomes])
     # sorry for this :(
     global pool
-    fitnesses = pool.starmap(play_game, [(genome[1], config) for genome in genomes])
+    # fitnesses = pool.starmap(play_game, [(genome[1], config) for genome in genomes])
+    total_genomes = len(genomes)
+    for i, genome in enumerate(genomes):
+        print(f"{i}/ {total_genomes}")
+        play_game(genome[1], config, show_visuals=True)
     for i, fitness in enumerate(fitnesses):
         genomes[i][1].fitness = fitness
 
 
 def train_neat(config):
-    p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-46599")
+    p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-32299")
     # p = neat.Population(config)
     # p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(100))
+    # p.add_reporter(neat.Checkpointer(100))
 
     winner = p.run(eval_genomes, 1)
     # play_game(winner, config, show_visuals=True)
@@ -105,7 +110,7 @@ if __name__ == "__main__":
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
-    pool = Pool(12)
+    pool = Pool()
     try:
         train_neat(config)
         pool.terminate()
