@@ -72,9 +72,9 @@ def play_game(genome, config, show_visuals=False):
 
 def calculate_fitness(score, time, dots_left, finished_level):
     if finished_level:
-        return score * SCORE_WEIGHT - (time/60) * TIME_WEIGHT_PER_SECOND
+        return 500
     else:
-        return 500 - dots_left
+        return 244 - dots_left
 
 def eval_genomes(genomes, config):
     #print([(genome, config) for genome in genomes])
@@ -86,8 +86,8 @@ def eval_genomes(genomes, config):
 
 
 def train_neat(config):
-    p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-46599")
-    # p = neat.Population(config)
+    # p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-46599")
+    p = neat.Population(config)
     # p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)

@@ -1,5 +1,5 @@
 import display
-import game
+import game_random_spawn as game
 from sys import exit
 from time import time, sleep
 
