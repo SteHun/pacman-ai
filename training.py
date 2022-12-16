@@ -1,5 +1,5 @@
 import display
-import game
+import game_random_spawn as game
 from sys import exit
 from time import time, sleep
 from multiprocessing import Pool
@@ -80,10 +80,21 @@ def eval_genomes(genomes, config):
     #print([(genome, config) for genome in genomes])
     # sorry for this :(
     global pool
+    global generation_number
     fitnesses = pool.starmap(play_game, [(genome[1], config) for genome in genomes])
     for i, fitness in enumerate(fitnesses):
         genomes[i][1].fitness = fitness
-
+    if (generation_number + 1) % 100 == 0:
+        append_list_to_file("fitness_results.txt", fitnesses)
+    generation_number += 1
+    
+def append_list_to_file(filename, list_to_append):
+    out_string = ""
+    for i in list_to_append:
+        out_string += f"{i},"
+    out_string += "\n"
+    with open(filename, "a") as file:
+        file.write(out_string)
 
 def train_neat(config):
     # p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-46599")
@@ -92,8 +103,9 @@ def train_neat(config):
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(100))
-
-    winner = p.run(eval_genomes, 1)
+    with open("fitness_results.txt", "x") as file:
+        pass
+    winner = p.run(eval_genomes, 500)
     # play_game(winner, config, show_visuals=True)
     with open("winner.neat", "wb") as file:
         file.write(pickle.dumps(winner))
@@ -106,6 +118,7 @@ if __name__ == "__main__":
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
     pool = Pool(12)
+    generation_number = 0
     try:
         train_neat(config)
         pool.terminate()
