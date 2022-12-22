@@ -121,8 +121,6 @@ class Player:
                         (1, 31), (14, 31), (26, 31)
                         )
         self.x_tile_pos, self.y_tile_pos = sample(spawn_options, 1)[0]
-        # self.x_tile_pos = 16
-        # self.y_tile_pos = 25
         self.x_pos_in_tile, self.y_pos_in_tile = self.x_tile_middle, self.y_tile_middle
         self.x_pos = 8 * self.x_tile_pos + self.x_pos_in_tile
         self.y_pos = 8 * self.y_tile_pos + self.y_pos_in_tile
@@ -173,7 +171,7 @@ class Player:
         options_for_moving = [False for i in range(4)]
         if x_pos <= 0 or x_pos >= len(maze_layout[0]) - 1:
             return [False, False, True, True]
-        # going to the bottom edge of the screen or far out of bound will make this crash, but that should never happen, right?
+        # going to the bottom edge of the screen or far out of bound will make this crash, but that should never happen
         options_for_moving[directions.up] = maze_layout[y_pos - 1][x_pos] != maze.wall
         options_for_moving[directions.down] = maze_layout[y_pos + 1][x_pos] != maze.wall
         options_for_moving[directions.left] = maze_layout[y_pos][x_pos - 1] != maze.wall
@@ -328,7 +326,7 @@ class Enemy:
 
 
     def initialize(self):
-        self.initial_x_tile_pos, self.initial_y_tile_pos = self.x_tile_pos, 16 # im so sorry...(needed some way to make initial_y_tile_pos align with the hous even in the case of Blinky)
+        self.initial_x_tile_pos, self.initial_y_tile_pos = self.x_tile_pos, 16
         self.initial_x_pos_in_tile, self.initial_y_pos_in_tile = self.x_pos_in_tile, self.y_pos_in_tile
 
         self.x_pos, self.y_pos = 8 * self.x_tile_pos + self.x_pos_in_tile, 8 * self.y_tile_pos + self.y_pos_in_tile
@@ -343,7 +341,7 @@ class Enemy:
             options_for_moving = [directions.left]
         elif x_pos >= len(maze_layout[0]) - 1:
             options_for_moving = [directions.right]
-        # going to the bottom edge of the screen or far out of bound will make this crash, but that should never happen, right?
+        # going to the bottom edge of the screen or far out of bound will make this crash, but that should never happen
         else:
             if maze_layout[y_pos - 1][x_pos] != maze.wall and self.direction != directions.down and not restrict_up:  options_for_moving.append(directions.up)
             if maze_layout[y_pos + 1][x_pos] != maze.wall and self.direction != directions.up:  options_for_moving.append(directions.down)
@@ -471,7 +469,6 @@ class Enemy:
     def advance_per_tile(self):
         # check if enemy is in front of the house
         if self.is_eaten and self.x_tile_pos == self.house_exit_x_tile_pos - 1 and self.y_tile_pos == self.house_exit_y_tile_pos:
-            # add stuff here
             self.is_entering_house = True 
             self.x_tile_pos, self.y_tile_pos = self.initial_x_tile_pos, self.initial_y_tile_pos
             self.x_pos_in_tile, self.y_pos_in_tile = self.initial_x_pos_in_tile, self.initial_y_pos_in_tile
@@ -484,7 +481,6 @@ class Enemy:
 
         if self.mode == modes.chase and not self.is_eaten:  self.target_x, self.target_y = self.get_chase_target()
         # make enemies slower in the tunnel
-        # TODO: make speed into constants for more predictable code (i'l never do this lol)
         if self.y_tile_pos == 16 and (self.x_tile_pos in range(-1, 6) or self.x_tile_pos in range(22, 29)):
             self.speed = self.tunnel_speed
         elif not self.is_eaten and not self.is_scared and (self.y_tile_pos == 13 or self.y_tile_pos == 25) and self.x_tile_pos in range(10, 18):

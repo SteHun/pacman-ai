@@ -11,17 +11,6 @@ import os
 MAX_TIME = 10800
 SCORE_WEIGHT = 5
 TIME_WEIGHT_PER_SECOND = 50
-# if __name__ == "__main__":
-#     frame_duration = 1/60
-#     game_instance = game.Game()
-#     window_instance = display.Window(game_instance, size_multiplier=2, show_targets=True)
-#     while 1:
-#         start_time = time()
-#         window_instance.refresh()
-#         game_instance.set_input(window_instance.key_pressed)
-#         game_instance.advance()
-#         if game_instance.game_has_ended or game_instance.player_died:   exit(0)
-#         sleep(max(0, frame_duration - (time() - start_time)))
 def get_state(enemy):
     if enemy.is_eaten:  return 1
     elif enemy.is_scared:   return 2
@@ -30,7 +19,6 @@ def get_state(enemy):
 
 def play_game(genome, config, show_visuals=False):
     frame_duration = 1/60
-    #fitness = 1000
     timer = 0
     game_instance = game.Game()
     net = neat.nn.FeedForwardNetwork.create(genome, config)
@@ -66,8 +54,6 @@ def play_game(genome, config, show_visuals=False):
             window_instance.refresh()
             sleep(max(0, frame_duration - (time() - start_time)))
     if show_visuals:    window_instance.close_window()
-    # fitness += calculate_fitness(game_instance.player.score, timer, game_instance.player.amount_of_dots, game_instance.game_has_ended)
-    # return fitness
     return calculate_fitness(game_instance.player.score, timer, game_instance.player.amount_of_dots, game_instance.game_has_ended)
 
 def calculate_fitness(score, time, dots_left, finished_level):
@@ -77,8 +63,6 @@ def calculate_fitness(score, time, dots_left, finished_level):
         return 244 - dots_left
 
 def eval_genomes(genomes, config):
-    #print([(genome, config) for genome in genomes])
-    # sorry for this :(
     global pool
     global generation_number
     fitnesses = pool.starmap(play_game, [(genome[1], config) for genome in genomes])

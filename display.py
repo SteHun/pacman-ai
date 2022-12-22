@@ -3,8 +3,6 @@ import game_random_spawn as game
 from os import path
 from time import time, sleep
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#MAKE SURE TO MULTIPLY POSITIONS BY SIZE_MULTIPLIER WHEN FINALIZING
 class Window:
     def __init__(self, game_object, size_multiplier=2, show_targets=False):
         pygame.init()

@@ -1,5 +1,7 @@
 # Watch out! This will get the fitness of neat checkpoints using the current fitness/game function from training.py
 # Make sure it is consistent
+# This script has been used to get the fitness of the first two runs. 
+# It is not needed anymore and might be hard to work with. 
 
 import training
 import neat
