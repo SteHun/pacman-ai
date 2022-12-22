@@ -1,3 +1,11 @@
+# All files are currently set up to play the run with the player spawning randomly
+# To switch to the normal one, replace 'import game_random_spawn as game' with 'import game' in the following files
+#   training.py
+#   display.py
+#   play.py
+# 
+# To switch to the version where fitness starts at 256, uncomment line 71 of this file
+
 import display
 import game_random_spawn as game
 from sys import exit
@@ -60,6 +68,7 @@ def calculate_fitness(score, time, dots_left, finished_level):
     if finished_level:
         return 500
     else:
+        # return 500 - dots_left
         return 244 - dots_left
 
 def eval_genomes(genomes, config):
