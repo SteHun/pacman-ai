@@ -1,4 +1,5 @@
 # pacman-ai
 Dependencies:\
 `pygame`\
-`neat-python`
+`neat-python`\
+`tqdm`
