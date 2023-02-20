@@ -1,5 +1,5 @@
 from random import uniform, randint, sample
-
+# this is the same thing as game, but with random spawns enabled
 class directions:
     up = 0
     down = 1

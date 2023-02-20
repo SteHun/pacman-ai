@@ -1,5 +1,6 @@
 from random import uniform, randint
 
+# These classes are useful to define the directions as numbers. It would be conveluted to use strings for this. 
 class directions:
     up = 0
     down = 1
@@ -26,9 +27,11 @@ class modes:
     chase = 1
 
 
-
+# an instance of this game class is created to start a new game
 class Game:
     def __init__(self):
+        # this bit gets the maze in the form of a two dimentional matrix from the maze.txt file
+        # some edge-cases are included
         self.maze_width_in_tiles = 28
         self.maze_height_in_tiles = 36
         with open("maze.txt", "r") as file:
@@ -46,6 +49,7 @@ class Game:
             input()
         self.maze = [[int(b) for b in a] for a in file_contents]
 
+        # this bit initializes some variables that are used in the game
         self.fps = 60
         self.tile_width_height = 8
         self.tile_to_left_of_fruit = (13,19)
@@ -63,6 +67,7 @@ class Game:
         self.game_has_ended = False
         self.player_died = False
 
+    # this function will put every active enemy in the scared state
     def scare_all_enemies(self):
         for enemy in self.enemies:
             if enemy.is_in_house:   continue
@@ -70,18 +75,24 @@ class Game:
             enemy.was_just_scared = True
             enemy.switch_direction()
             enemy.scared_timer = enemy.scared_time
-        
+    
+    # this function was used to give the game the player's input
+    # it is used from outside this file
     def set_input(self, key):
         assert key <= 3, f"input number should be between 0 and 3, not {key}"
         self.input = key
+
+    # this function runs every frame
     def advance(self):
         if self.game_has_ended or self.player_died: return
         self.clock += 1
 
         self.player.advance()
+        # checks if the player has won
         if self.player.amount_of_dots <= 0:
             self.game_has_ended = True
             return
+        # check if a fruit should appear
         elif not self.fruits_have_been_eaten and self.player.amount_of_dots == self.fruit_apprearances[0]:
             self.active_fruit = self.fruit_to_appear
             del self.fruit_apprearances[0]
@@ -95,6 +106,7 @@ class Game:
 
 class Player:
     def __init__(self, game_object):
+        # the player object can communicate with the game object
         self.game_object = game_object
 
         self.score = 0
@@ -103,12 +115,13 @@ class Player:
 
         self.speed = 1.5 * 0.80 #This is the speed for level 1!
         
+        # counts all dots to set the amount_of_dots variables
         self.amount_of_dots = 0
         for row in self.game_object.maze:
             for item in row:
                 if item == maze.dot or item == maze.power:
                     self.amount_of_dots += 1
-
+        # initialize variables
         self.x_tile_middle, self.y_tile_middle = 3.5, 3.5
         self.x_tile_pos = 14 
         self.y_tile_pos = 25
@@ -125,8 +138,9 @@ class Player:
 
         self.direction = directions.up
     
-    
+    # Makes the player move in one direction
     def move(self, speed, direction):
+        # moves the player in the current tile
         if direction == directions.up:
             self.y_pos_in_tile -= speed
             self.y_pos -= speed
@@ -140,6 +154,7 @@ class Player:
             self.x_pos_in_tile += speed
             self.x_pos += speed
         
+        # moves the player to a new tile if an overflow occurs
         while self.y_pos_in_tile >= self.game_object.tile_width_height:
             self.y_tile_pos += 1
             self.y_pos_in_tile -= self.game_object.tile_width_height
@@ -158,8 +173,10 @@ class Player:
             return True
         return False
     
+    # this function detects which way the player is allowd to move
     def get_options_for_moving(self, maze_layout, x_pos, y_pos):
         options_for_moving = [False for i in range(4)]
+        # this is an edge-case when in the tunnel to prevent a crash 
         if x_pos <= 0 or x_pos >= len(maze_layout[0]) - 1:
             return [False, False, True, True]
         # going to the bottom edge of the screen or far out of bound will make this crash, but that should never happen
@@ -169,6 +186,7 @@ class Player:
         options_for_moving[directions.right] = maze_layout[y_pos][x_pos + 1] != maze.wall
         return options_for_moving
     
+    # Centers the player to the middle of the tile while going up or down
     def center_left_right(self):
         if abs(self.x_pos_in_tile - self.x_tile_middle) <= self.speed:
             self.x_pos_in_tile = self.x_tile_middle
@@ -180,6 +198,7 @@ class Player:
             self.x_pos_in_tile += self.speed
             self.x_pos += self.speed
     
+    # Centers the player to the middle of the tile while going right or left
     def center_up_down(self):
         if abs(self.y_pos_in_tile - self.y_tile_middle) <= self.speed:
             self.y_pos_in_tile = self.y_tile_middle
@@ -192,27 +211,34 @@ class Player:
             self.y_pos += self.speed
 
     def advance(self):
+        # sets the player's direction to the input if it is valid
         if self.options_for_moving[self.game_object.input]: self.direction = self.game_object.input
         if self.dont_move_next_frame:
             self.dont_move_next_frame = False
             return
+        # moves the player if the direction is valid
         if self.options_for_moving[self.direction]:
             tile_has_changed = self.move(self.speed, self.direction)
             if tile_has_changed:
+                # if the player is on a new tile, some things need to be done like
+                # seeing which directions are valid now
                 self.options_for_moving = self.get_options_for_moving(self.game_object.maze, self.x_tile_pos, self.y_tile_pos)
                 try:
                     if self.x_tile_pos < 0: raise IndexError
+                    # if the player has entered a tile with a dot, eat the dot
                     if self.game_object.maze[self.y_tile_pos][self.x_tile_pos] == maze.dot:
                         self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
                         self.amount_of_dots -= 1
                         self.score += 10
                         self.dont_move_next_frame = True
+                    # if the player has entered a tile with a power pellet, activate its effects
                     elif self.game_object.maze[self.y_tile_pos][self.x_tile_pos] == maze.power:
                         self.game_object.maze[self.y_tile_pos][self.x_tile_pos] = maze.empty
                         self.amount_of_dots -= 1
                         self.score += 50
                         self.enemy_consumption_bonus = 0
                         self.game_object.scare_all_enemies()
+                    # if the player has entered a tile with a fruit, eat the fruit
                     elif (self.x_tile_pos, self.y_tile_pos) == self.game_object.tile_to_left_of_fruit or (self.x_tile_pos, self.y_tile_pos) == self.game_object.tile_to_right_of_fruit:
                         if self.game_object.active_fruit == fruits.cherry:
                             self.score += 100
@@ -232,9 +258,10 @@ class Player:
                             self.score += 5000
                         self.game_object.active_fruit = fruits.none
                 except IndexError:
+                    # wraps the player to the other side in the tunnel
                     if self.x_tile_pos == -2:   self.x_tile_pos = 28
                     elif self.x_tile_pos == 29: self.x_tile_pos = -1
-                    
+            #centers the player if needed
             if self.y_pos_in_tile != self.y_tile_middle and (self.direction == directions.left or self.direction == directions.right):
                 self.center_up_down()
             elif self.x_pos_in_tile != self.y_tile_middle and (self.direction == directions.up or self.direction == directions.down):
@@ -244,6 +271,7 @@ class Player:
         elif self.y_pos_in_tile != self.y_tile_middle and (self.direction == directions.up or self.direction == directions.down):
             self.center_up_down()
         
+        # handle collision with enemies
         for enemy in self.game_object.enemies:
             if self.x_tile_pos == enemy.x_tile_pos and self.y_tile_pos == enemy.y_tile_pos:
                 if enemy.is_scared:
@@ -259,6 +287,7 @@ class Player:
                 else:
                     self.game_object.player_died = True
 
+        # adjust x and y position used as output of the game (for display and the training algorithm)
         self.x_pos = self.x_tile_pos * self.game_object.tile_width_height + self.x_pos_in_tile
         self.y_pos = self.y_tile_pos * self.game_object.tile_width_height + self.y_pos_in_tile
 
@@ -324,6 +353,7 @@ class Enemy:
         self.initial_x_pos, self.initial_y_pos = self.x_pos, 8 * 16 + self.y_pos_in_tile
         self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
         self.direction = self.next_direction
+    # default chase target, shoulld never be used
     def get_chase_target(self): return self.scatter_target_x, self.scatter_target_y
 
     def get_options_for_moving(self, maze_layout, x_pos, y_pos, restrict_up):
@@ -340,6 +370,7 @@ class Enemy:
             if maze_layout[y_pos][x_pos + 1] != maze.wall and self.direction != directions.left:  options_for_moving.append(directions.right)
         return options_for_moving
     
+    # gets the next move the enemy should made, depending on their target tile
     def get_next_move(self, maze_layout, x_pos, y_pos, target_x, target_y, restrict_up = False):
         options_for_moving = self.get_options_for_moving(maze_layout, x_pos, y_pos, restrict_up)
         if len(options_for_moving) == 1:    return options_for_moving[0]
@@ -362,15 +393,16 @@ class Enemy:
                 best_options = [option]
             elif distance == best_distance:
                 best_options.append(option)
-        
+        # if a best option is found, return it
         if len(best_options) == 1:
             return best_options[0]
+        # if more are found, the priorities from the original game are used
         else:
             if directions.up in best_options:   return directions.up
             elif directions.left in best_options:   return directions.left
             elif directions.down in best_options:  return directions.down
             else:   return directions.right 
-
+    # move the enemy the set speed and direction
     def move(self, speed, direction):
         if direction == directions.up:
             self.y_pos_in_tile -= speed
@@ -403,6 +435,8 @@ class Enemy:
             return True
         return False
 
+    # make the enemy switch direction
+    # used when a power pellet is collected
     def switch_direction(self):
         if self.direction == directions.up: self.direction = directions.down
         elif self.direction == directions.down: self.direction = directions.up
@@ -417,8 +451,10 @@ class Enemy:
             self.mode = modes.chase
         if self.mode == modes.scatter and not self.is_eaten:  self.target_x, self.target_y = self.scatter_target_x, self.scatter_target_y
         self.total_mode_switches += 1
-
+        
+    # Specific code to be run every frame if the enemy is in the house
     def advance_when_in_house(self):
+        # if the player has eaten a specified number of dots, start exiting the house
         if not self.is_exiting_house and self.game_object.player.amount_of_dots <= self.dots_to_exit:
             self.is_exiting_house = True
             if self.x_pos + self.speed / 2 <= self.house_exit_x_pos:
@@ -429,6 +465,7 @@ class Enemy:
                 self.x_pos = self.house_exit_x_pos
                 self.direction = directions.up
         elif self.is_exiting_house:
+            # if exiting the house, first move to the center and then up
             self.move(self.speed, self.direction)
             if self.direction != directions.up and (self.house_exit_x_pos - self.speed / 2 <= self.x_pos and self.house_exit_x_pos + self.speed / 2 >= self.x_pos):
                 self.direction = directions.up
@@ -440,12 +477,15 @@ class Enemy:
                 self.is_in_house = False
                 self.is_exiting_house = False
     
+    # specific code to be run every frame if the enemy is entering the house
     def advance_when_entering_house(self):
+        # first allign yourself with the y-value for in the house
         if self.y_pos < self.initial_y_pos:
             if self.y_pos + self.speed >= self.initial_y_pos:
                 self.y_pos = self.initial_y_pos
             else:
                 self.move(self.speed, directions.down)
+        # then allign yourself with your designated x-value
         elif self.x_pos != self.initial_x_pos:
             if (self.x_pos > self.initial_x_pos and self.x_pos - self.speed <= self.initial_x_pos) or (self.x_pos < self.initial_x_pos and self.x_pos + self.speed >= self.initial_x_pos):
                 self.x_pos = self.initial_x_pos
@@ -454,9 +494,11 @@ class Enemy:
             elif self.x_pos < self.initial_x_pos:
                 self.move(self.speed, directions.right)
         else:
+            # you are done entering the house, good job :)
             self.is_in_house = True
             self.is_entering_house = False
-        
+    
+    # code to be run when a new tile is entered 
     def advance_per_tile(self):
         # check if enemy is in front of the house
         if self.is_eaten and self.x_tile_pos == self.house_exit_x_tile_pos - 1 and self.y_tile_pos == self.house_exit_y_tile_pos:
@@ -469,7 +511,7 @@ class Enemy:
         # wrap around the screen
         if self.x_tile_pos == -2:   self.x_tile_pos = 28
         elif self.x_tile_pos == 29: self.x_tile_pos = -1
-
+        # get the new target when in chase mode
         if self.mode == modes.chase and not self.is_eaten:  self.target_x, self.target_y = self.get_chase_target()
         # make enemies slower in the tunnel
         if self.y_tile_pos == 16 and (self.x_tile_pos in range(-1, 6) or self.x_tile_pos in range(22, 29)):
@@ -480,6 +522,7 @@ class Enemy:
         else:
             self.speed = self.base_speed
             self.next_direction = self.get_next_move(self.game_object.maze, self.x_tile_pos, self.y_tile_pos, self.target_x, self.target_y)
+        # gets the enemy ready to switch their direction on the next intersection
         if self.next_direction != self.direction:
             self.switch_at_next_intersection = True
 
@@ -511,7 +554,7 @@ class Enemy:
             self.scared_timer -= 1
             if self.scared_timer <= 0:
                 self.is_scared = False
-        # manage the elroy boost
+        # manage the elroy boost (used for blinky)
         if self.elroy and not self.is_elroy_now and self.game_object.player.amount_of_dots == self.dots_for_elroy:
             self.is_elroy_now = True
             self.mode = modes.chase
@@ -528,12 +571,13 @@ class Enemy:
         if self.is_eaten:   calculate_new_direction = self.move(self.eaten_speed, self.direction)
         elif self.is_scared:  calculate_new_direction = self.move(self.scared_speed, self.direction)
         else:   calculate_new_direction = self.move(self.speed, self.direction)
-        
+        # makes the run the code for entering a new tile when the player was scared
         if self.was_just_scared:
             self.was_just_scared = False
             calculate_new_direction = True
         if calculate_new_direction or mode_has_switched:
             self.advance_per_tile()
+        # switches directions when eeded
         if self.switch_at_next_intersection:
             if self.direction == directions.up and self.y_pos_in_tile <= self.y_tile_middle:
                 self.y_pos_in_tile = self.y_tile_middle
@@ -551,12 +595,14 @@ class Enemy:
                 self.x_pos_in_tile = self.x_tile_middle
                 self.direction = self.next_direction
                 self.switch_at_next_intersection = False
+        # updates x and y pos if needed 
         if not self.is_entering_house:
             self.x_pos = self.x_tile_pos * self.game_object.tile_width_height + self.x_pos_in_tile
             self.y_pos = self.y_tile_pos * self.game_object.tile_width_height + self.y_pos_in_tile
     
 class Blinky(Enemy):
     def __init__(self, game_object):
+        # sets some variables unique to blinky as well as some that require arguements
         self.game_object = game_object
         self.scatter_target_x, self.scatter_target_y = 25, 2
         self.elroy = True
@@ -570,6 +616,7 @@ class Blinky(Enemy):
         self.dots_to_exit = self.game_object.player.amount_of_dots - 0
         self.initialize()
     def get_chase_target(self):
+        # custom chase target
         return self.game_object.player.x_tile_pos, self.game_object.player.y_tile_pos
 
 class Pinky(Enemy):

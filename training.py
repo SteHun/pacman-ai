@@ -24,7 +24,7 @@ def get_state(enemy):
     elif enemy.is_scared:   return 2
     else:   return 0
 
-
+# this function is run for every neural network
 def play_game(genome, config, show_visuals=False):
     frame_duration = 1/60
     timer = 0
@@ -33,8 +33,9 @@ def play_game(genome, config, show_visuals=False):
     time_of_last_dot = 0
 
     if show_visuals:    window_instance = display.Window(game_instance, size_multiplier=2, show_targets=True)
+    # runs the game while it is not over
     while not (game_instance.game_has_ended or game_instance.player_died):
-
+        # get the results from the network
         output = net.activate((game_instance.player.x_pos, 
                                 game_instance.player.y_pos, 
                                 game_instance.enemies[0].x_pos, 
@@ -54,7 +55,7 @@ def play_game(genome, config, show_visuals=False):
 
         game_instance.advance()
         timer += 1
-
+        # if the player takes too long, stop the game
         if timer > MAX_TIME:    break
 
         if show_visuals:
@@ -63,14 +64,14 @@ def play_game(genome, config, show_visuals=False):
             sleep(max(0, frame_duration - (time() - start_time)))
     if show_visuals:    window_instance.close_window()
     return calculate_fitness(game_instance.player.score, timer, game_instance.player.amount_of_dots, game_instance.game_has_ended)
-
+# this is the fitness function
 def calculate_fitness(score, time, dots_left, finished_level):
     if finished_level:
         return 500
     else:
         # return 500 - dots_left
         return 244 - dots_left
-
+# this function runs the game for every net in a generation
 def eval_genomes(genomes, config):
     global pool
     global generation_number
@@ -80,7 +81,7 @@ def eval_genomes(genomes, config):
     if (generation_number + 1) % 100 == 0:
         append_list_to_file("fitness_results.txt", fitnesses)
     generation_number += 1
-    
+# this is to document the results
 def append_list_to_file(filename, list_to_append):
     out_string = ""
     for i in list_to_append:
@@ -88,7 +89,7 @@ def append_list_to_file(filename, list_to_append):
     out_string += "\n"
     with open(filename, "a") as file:
         file.write(out_string)
-
+# this initializes the training
 def train_neat(config):
     # p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-46599")
     p = neat.Population(config)

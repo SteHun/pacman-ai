@@ -3,6 +3,7 @@ import game_random_spawn as game
 from sys import exit
 from time import time, sleep
 
+# the game loop for playing
 if __name__ == "__main__":
     frame_duration = 1/60
     game_instance = game.Game()

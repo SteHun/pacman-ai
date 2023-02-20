@@ -2,7 +2,7 @@ import training
 import pickle
 import neat
 import os
-
+# this should be self-explanetory
 if __name__ == "__main__":
     with open("winner.neat", "rb") as file:
         winner = pickle.loads(file.read())

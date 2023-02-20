@@ -5,6 +5,7 @@ from time import time, sleep
 
 class Window:
     def __init__(self, game_object, size_multiplier=2, show_targets=False):
+        # set variables, boilerplate, initialisation and loading
         pygame.init()
         self.game_object = game_object
         self.size_multiplier = size_multiplier
@@ -65,11 +66,12 @@ class Window:
         self.fruit_rects = tuple([get_rect(i, 0) for i in range(number_of_fruits + 1)])
 
     def refresh(self):
+        # update the score
         if self.previous_score != self.game_object.player.score:
             self.previous_score = self.game_object.player.score
             self.score_text = self.font.render(str(self.previous_score), True, (255, 255, 255))
             self.score_text_rect = self.score_text.get_rect()
-
+        # handle quit and keydown events
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
             if event.type == pygame.KEYDOWN:
@@ -82,22 +84,23 @@ class Window:
                 elif event.key == pygame.K_RIGHT:
                     self.key_pressed = game.directions.right
         
-        
+        # update dot map and draw black rectangle on eaten dots
         for row_index, row in enumerate(self.game_object.maze):
             for item_index, item in enumerate(row):
                 if item != game.maze.empty or self.dot_map[row_index][item_index] == False: continue
                 self.dot_map[row_index][item_index] = False
                 pygame.draw.rect(self.bg, self.fill_color, (self.tile_width_height * item_index, self.tile_width_height * row_index, self.tile_width_height, self.tile_width_height))
-
+        # blit the screen
         self.screen.blit(self.bg, (0, 0))
-
+        # blit the score text
         self.screen.blit(self.score_text, self.score_text_rect)
 
-
+        # blit the player
         self.screen.blit(self.player_sprites[self.game_object.player.direction], self.scale_position(self.game_object.player.x_pos, self.game_object.player.y_pos))
-
+        # blit the fruit
         if self.game_object.active_fruit != game.fruits.none:
             self.screen.blit(self.fruit_sheet, self.fruit_position, area=self.fruit_rects[self.game_object.active_fruit])
+        # blit the ememies
         for enemy in self.game_object.enemies:
             if enemy.is_eaten:
                 self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.scared_white_rect)
@@ -111,7 +114,7 @@ class Window:
                 self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.inky_rects[enemy.direction])
             elif type(enemy) == game.Clyde:
                 self.screen.blit(self.enemy_sheet, self.scale_position(enemy.x_pos, enemy.y_pos), area=self.clyde_rects[enemy.direction])
-
+        # draw targets
         if self.show_targets:
             twh = self.game_object.tile_width_height
             for enemy in self.game_object.enemies:
