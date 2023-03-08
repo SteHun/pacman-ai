@@ -1,13 +1,14 @@
-# All files are currently set up to play the run with the player spawning randomly
-# To switch to the normal one, replace 'import game_random_spawn as game' with 'import game' in the following files
+# All files are currently set up to play the run with the player spawning normally
+# To switch to random spawning, replace 'import game' with 'import game_random_spawn as game' in the following files
 #   training.py
 #   display.py
 #   play.py
+# This could also be done with the 'analyze_data.py' and the 'watch_generation.py' files, but those are unstable, unnecessary and difficul to use
 # 
-# To switch to the version where fitness starts at 256, uncomment line 71 of this file
+# To switch to the version where fitness starts at 256, uncomment line 73 of this file
 
 import display
-import game_random_spawn as game
+import game
 from sys import exit
 from time import time, sleep
 from multiprocessing import Pool

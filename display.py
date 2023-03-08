@@ -1,5 +1,5 @@
 import sys, pygame
-import game_random_spawn as game
+import game
 from os import path
 from time import time, sleep
 

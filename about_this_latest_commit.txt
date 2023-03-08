@@ -1,0 +1,4 @@
+The game was already complete way before this last commit was made on the 8th om march. 
+However, there were some things I wanted to clarify after the fact. 
+The game started in random spawn mode automatically, which is not a good default
+An incorrect line number was cited, which may cause confusion
